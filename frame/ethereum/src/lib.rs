@@ -476,8 +476,6 @@ impl<T: Config> Pallet<T> {
 		let (base_fee, _) = T::FeeCalculator::min_gas_price();
 		let (who, _) = pallet_evm::Pallet::<T>::account_basic(&origin);
 
-		// TODO: Should probably have InvalidTransactionError argument
-		// let evm_config = CheckEvmTransaction::<Error<T>>::new(
 		let evm_config = CheckEvmTransaction::<InvalidTransactionWrapper>::new(
 			CheckEvmTransactionConfig {
 				evm_config: T::config(),
