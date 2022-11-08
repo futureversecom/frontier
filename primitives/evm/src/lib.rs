@@ -37,8 +37,8 @@ pub use self::precompile::{
 };
 
 pub use self::validation::{
-	CheckEvmTransaction, CheckEvmTransactionConfig, CheckEvmTransactionInput,
-	InvalidEvmTransactionError, HandleTxValidation
+	CheckEvmTransaction, CheckEvmTransactionConfig, CheckEvmTransactionInput, HandleTxValidation,
+	InvalidEvmTransactionError,
 };
 
 #[derive(Clone, Eq, PartialEq, Encode, Decode, Default)]

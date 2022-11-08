@@ -70,7 +70,9 @@ pub trait HandleTxValidation<E: From<InvalidEvmTransactionError>> {
 	fn with_chain_id(evm_config: &CheckEvmTransaction<E>) -> Result<(), E>;
 	fn with_base_fee(evm_config: &CheckEvmTransaction<E>) -> Result<(), E>;
 	fn with_balance_for(evm_config: &CheckEvmTransaction<E>, who: &Account) -> Result<(), E>;
-	fn transaction_fee_input(evm_config: &CheckEvmTransaction<E>) -> Result<(U256, Option<U256>), E>;
+	fn transaction_fee_input(
+		evm_config: &CheckEvmTransaction<E>,
+	) -> Result<(U256, Option<U256>), E>;
 	fn validate_common(evm_config: &CheckEvmTransaction<E>) -> Result<(), E>;
 }
 
@@ -141,7 +143,9 @@ impl<'config, E: From<InvalidEvmTransactionError>> HandleTxValidation<E> for () 
 		Ok(())
 	}
 
-	fn transaction_fee_input(evm_config: &CheckEvmTransaction<E>) -> Result<(U256, Option<U256>), E> {
+	fn transaction_fee_input(
+		evm_config: &CheckEvmTransaction<E>,
+	) -> Result<(U256, Option<U256>), E> {
 		match (
 			evm_config.transaction.gas_price,
 			evm_config.transaction.max_fee_per_gas,

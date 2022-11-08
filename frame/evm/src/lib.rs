@@ -98,9 +98,9 @@ pub use self::{
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
+	use fp_evm::HandleTxValidation;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
-	use fp_evm::HandleTxValidation;
 	#[pallet::pallet]
 	#[pallet::generate_store(pub(super) trait Store)]
 	#[pallet::without_storage_info]

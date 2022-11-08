@@ -36,7 +36,7 @@ use sp_std::{boxed::Box, collections::btree_set::BTreeSet, marker::PhantomData, 
 #[derive(Default)]
 pub struct Runner<T: Config> {
 	_marker: PhantomData<T>,
-} 
+}
 
 impl<T: Config> Runner<T>
 where

@@ -29,13 +29,19 @@ mod mock;
 #[cfg(all(feature = "std", test))]
 mod tests;
 
+pub use ethereum::{
+	AccessListItem, BlockV2 as Block, LegacyTransactionMessage, Log, ReceiptV3 as Receipt,
+	TransactionAction, TransactionV2 as Transaction,
+};
 use ethereum_types::{Bloom, BloomInput, H160, H256, H64, U256};
 use evm::ExitReason;
 use fp_consensus::{PostLog, PreLog, FRONTIER_ENGINE_ID};
 use fp_ethereum::{TransactionData, ValidatedTransaction as ValidatedTransactionT};
 use fp_evm::{
-	CallOrCreateInfo, CheckEvmTransaction, CheckEvmTransactionConfig, InvalidEvmTransactionError,
+	CallOrCreateInfo, CheckEvmTransaction, CheckEvmTransactionConfig, HandleTxValidation,
+	InvalidEvmTransactionError,
 };
+pub use fp_rpc::TransactionStatus;
 use fp_storage::{EthereumStorageSchema, PALLET_ETHEREUM_SCHEMA};
 #[cfg(feature = "try-runtime")]
 use frame_support::traits::OnRuntimeUpgradeHelpersExt;
@@ -57,12 +63,6 @@ use sp_runtime::{
 	DispatchErrorWithPostInfo, RuntimeDebug,
 };
 use sp_std::{marker::PhantomData, prelude::*};
-use fp_evm::HandleTxValidation;
-pub use ethereum::{
-	AccessListItem, BlockV2 as Block, LegacyTransactionMessage, Log, ReceiptV3 as Receipt,
-	TransactionAction, TransactionV2 as Transaction,
-};
-pub use fp_rpc::TransactionStatus;
 
 #[derive(PartialEq, Eq, Clone, RuntimeDebug, Encode, Decode, MaxEncodedLen, TypeInfo)]
 pub enum RawOrigin {
@@ -135,7 +135,7 @@ where
 
 			Some(Pallet::<T>::validate_transaction_in_block(
 				*origin,
-				transaction, 
+				transaction,
 			))
 		} else {
 			None
@@ -478,8 +478,8 @@ impl<T: Config> Pallet<T> {
 
 		// TODO: Should probably have InvalidTransactionError argument
 		// let evm_config = CheckEvmTransaction::<Error<T>>::new(
-			let evm_config = CheckEvmTransaction::<InvalidTransactionWrapper>::new(
-				CheckEvmTransactionConfig {
+		let evm_config = CheckEvmTransaction::<InvalidTransactionWrapper>::new(
+			CheckEvmTransactionConfig {
 				evm_config: T::config(),
 				block_gas_limit: T::BlockGasLimit::get(),
 				base_fee,
@@ -492,7 +492,9 @@ impl<T: Config> Pallet<T> {
 		<T as pallet::Config>::HandleTxValidation::validate_in_pool_for(&evm_config, &who)
 			.and_then(|_| <T as pallet::Config>::HandleTxValidation::with_chain_id(&evm_config))
 			.and_then(|_| <T as pallet::Config>::HandleTxValidation::with_base_fee(&evm_config))
-			.and_then(|_| <T as pallet::Config>::HandleTxValidation::with_balance_for(&evm_config, &who))
+			.and_then(|_| {
+				<T as pallet::Config>::HandleTxValidation::with_balance_for(&evm_config, &who)
+			})
 			.map_err(|e| e.0)?;
 
 		let priority = match (
@@ -801,7 +803,9 @@ impl<T: Config> Pallet<T> {
 		<T as pallet::Config>::HandleTxValidation::validate_in_block_for(&evm_config, &who)
 			.and_then(|_| <T as pallet::Config>::HandleTxValidation::with_chain_id(&evm_config))
 			.and_then(|_| <T as pallet::Config>::HandleTxValidation::with_base_fee(&evm_config))
-			.and_then(|_| <T as pallet::Config>::HandleTxValidation::with_balance_for(&evm_config, &who))
+			.and_then(|_| {
+				<T as pallet::Config>::HandleTxValidation::with_balance_for(&evm_config, &who)
+			})
 			.map_err(|e| TransactionValidityError::Invalid(e.0))?;
 		Ok(())
 	}
