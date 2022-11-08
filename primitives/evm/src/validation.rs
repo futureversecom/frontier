@@ -64,6 +64,19 @@ pub enum InvalidEvmTransactionError {
 	InvalidChainId,
 }
 
+impl<'config, E: From<InvalidEvmTransactionError>> CheckEvmTransaction<'config, E> {
+	pub fn new(
+		config: CheckEvmTransactionConfig<'config>,
+		transaction: CheckEvmTransactionInput,
+	) -> Self {
+		CheckEvmTransaction {
+			config,
+			transaction,
+			_marker: Default::default(),
+		}
+	}
+}
+
 pub trait HandleTxValidation<E: From<InvalidEvmTransactionError>> {
 	fn validate_in_pool_for(evm_config: &CheckEvmTransaction<E>, who: &Account) -> Result<(), E> {
 		if evm_config.transaction.nonce < who.nonce {
@@ -131,7 +144,9 @@ pub trait HandleTxValidation<E: From<InvalidEvmTransactionError>> {
 		Ok(())
 	}
 
-	fn transaction_fee_input(evm_config: &CheckEvmTransaction<E>) -> Result<(U256, Option<U256>), E> {
+	fn transaction_fee_input(
+		evm_config: &CheckEvmTransaction<E>,
+	) -> Result<(U256, Option<U256>), E> {
 		match (
 			evm_config.transaction.gas_price,
 			evm_config.transaction.max_fee_per_gas,
@@ -202,19 +217,6 @@ pub trait HandleTxValidation<E: From<InvalidEvmTransactionError>> {
 }
 
 impl<'config, E: From<InvalidEvmTransactionError>> HandleTxValidation<E> for () {}
-
-impl<'config, E: From<InvalidEvmTransactionError>> CheckEvmTransaction<'config, E> {
-	pub fn new(
-		config: CheckEvmTransactionConfig<'config>,
-		transaction: CheckEvmTransactionInput,
-	) -> Self {
-		CheckEvmTransaction {
-			config,
-			transaction,
-			_marker: Default::default(),
-		}
-	}
-}
 
 #[cfg(test)]
 mod tests {
