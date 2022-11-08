@@ -65,6 +65,16 @@ pub enum InvalidEvmTransactionError {
 }
 
 pub trait HandleTxValidation<E: From<InvalidEvmTransactionError>> {
+	fn validate_in_pool_for(evm_config: &CheckEvmTransaction<E>, who: &Account) -> Result<(), E>;
+	fn validate_in_block_for(evm_config: &CheckEvmTransaction<E>, who: &Account) -> Result<(), E>;
+	fn with_chain_id(evm_config: &CheckEvmTransaction<E>) -> Result<(), E>;
+	fn with_base_fee(evm_config: &CheckEvmTransaction<E>) -> Result<(), E>;
+	fn with_balance_for(evm_config: &CheckEvmTransaction<E>, who: &Account) -> Result<(), E>;
+	fn transaction_fee_input(evm_config: &CheckEvmTransaction<E>) -> Result<(U256, Option<U256>), E>;
+	fn validate_common(evm_config: &CheckEvmTransaction<E>) -> Result<(), E>;
+}
+
+impl<'config, E: From<InvalidEvmTransactionError>> HandleTxValidation<E> for () {
 	fn validate_in_pool_for(evm_config: &CheckEvmTransaction<E>, who: &Account) -> Result<(), E> {
 		if evm_config.transaction.nonce < who.nonce {
 			return Err(InvalidEvmTransactionError::TxNonceTooLow.into());
@@ -200,8 +210,6 @@ pub trait HandleTxValidation<E: From<InvalidEvmTransactionError>> {
 		Ok(())
 	}
 }
-
-impl<'config, E: From<InvalidEvmTransactionError>> HandleTxValidation<E> for () {}
 
 impl<'config, E: From<InvalidEvmTransactionError>> CheckEvmTransaction<'config, E> {
 	pub fn new(
