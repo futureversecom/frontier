@@ -47,6 +47,9 @@ pallet-transaction-payment-rpc-runtime-api = { version = "4.0.0-dev", git = "htt
 frame-benchmarking = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27", default-features = false, optional = true }
 frame-system-benchmarking = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27", default-features = false, optional = true }
 
+pallet-session = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27", default-features = false }
+pallet-authorship = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27", default-features = false }
+
 # Frontier
 fp-rpc = { path = "../../primitives/rpc", default-features = false }
 fp-self-contained = { path = "../../primitives/self-contained", default-features = false }
@@ -60,6 +63,9 @@ pallet-evm-precompile-modexp = { path = "../../frame/evm/precompile/modexp", def
 pallet-evm-precompile-sha3fips = { path = "../../frame/evm/precompile/sha3fips", default-features = false }
 pallet-evm-precompile-simple = { path = "../../frame/evm/precompile/simple", default-features = false }
 pallet-hotfix-sufficients = { path = "../../frame/hotfix-sufficients", default-features = false }
+
+seed-primitives = { path = "../primitives", default-features = false }
+sp-application-crypto = { git = "https://github.com/futureversecom/substrate", default-features = false, branch = "polkadot-v0.9.27" }
 
 [build-dependencies]
 substrate-wasm-builder = { version = "5.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
@@ -114,6 +120,10 @@ std = [
 	"pallet-evm-precompile-sha3fips/std",
 	"pallet-evm-precompile-simple/std",
 	"pallet-hotfix-sufficients/std",
+	"seed-primitives/std",
+	"pallet-session/std",
+	"pallet-authorship/std",
+	"sp-application-crypto/std"
 ]
 runtime-benchmarks = [
 	"frame-benchmarking",
