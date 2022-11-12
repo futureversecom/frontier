@@ -200,7 +200,7 @@ use pallet_grandpa::{fg_primitives, AuthorityList as GrandpaAuthorityList};
 pub use sp_runtime::BuildStorage;
 
 pub use seed_primitives::{
-	AccountId, Address, AssetId, BabeId, Balance, BlockNumber, CollectionUuid, Hash, Index,
+	AccountId, Address, AssetId, Balance, BlockNumber, Hash, Index,
 	Signature, TokenId,
 };
 
