@@ -201,7 +201,7 @@ pub use sp_runtime::BuildStorage;
 
 pub use seed_primitives::{
 	AccountId, Address, AssetId, Balance, BlockNumber, Hash, Index,
-	Signature, TokenId,
+	Signature,
 };
 
 pub mod precompiles;
@@ -237,8 +237,7 @@ const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_percent(10);
 /// We allow `Normal` extrinsics to fill up the block up to 75%, the rest can be used
 /// by  Operational  extrinsics.
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
-/// We allow for .5 seconds of compute with a 12 second average block time.
-const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = 2 * WEIGHT_PER_SECOND;
 
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 250;
@@ -451,7 +450,7 @@ pub const GAS_PER_SECOND: u64 = 15_000_000;
 
 /// Approximate ratio of the amount of Weight per Gas.
 /// u64 works for approximations because Weight is a very small unit compared to gas.
-pub const WEIGHT_PER_GAS: u64 = WEIGHT_PER_SECOND / GAS_PER_SECOND;
+pub const WEIGHT_PER_GAS: u64 = 20_000;
 
 pub struct FutureverseGasWeightMapping;
 
@@ -1004,6 +1003,4 @@ mod constants {
 	pub const DAYS: BlockNumber = HOURS * 24;
 
 	pub const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_percent(5);
-	pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
-	pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
 }
