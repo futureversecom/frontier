@@ -22,41 +22,41 @@ codec = { package = "parity-scale-codec", version = "3.1", features = ["derive"]
 jsonrpsee = { version = "0.14.0", features = ["server", "macros"] }
 
 # Substrate
-sc-basic-authorship = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-sc-cli = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27", features = ["wasmtime"] }
-sc-client-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-sc-consensus = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-sc-consensus-aura = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27", optional = true }
-sc-consensus-manual-seal = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27", optional = true }
-sc-executor = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27", features = ["wasmtime"] }
-sc-finality-grandpa = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-sc-keystore = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-sc-network = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-sc-rpc = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-sc-rpc-api = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-sc-service = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27", features = ["wasmtime"] }
-sc-telemetry = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-sc-transaction-pool = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-sc-transaction-pool-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-sp-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-sp-block-builder = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-sp-blockchain = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-sp-consensus = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-sp-consensus-aura = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-sp-core = { version = "6.0.0", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-sp-finality-grandpa = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-sp-inherents = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-sp-keyring = { version = "6.0.0", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-sp-runtime = { version = "6.0.0", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-sp-timestamp = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
+sc-basic-authorship = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+sc-cli = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug", features = ["wasmtime"] }
+sc-client-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+sc-consensus = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+sc-consensus-aura = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug", optional = true }
+sc-consensus-manual-seal = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug", optional = true }
+sc-executor = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug", features = ["wasmtime"] }
+sc-finality-grandpa = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+sc-keystore = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+sc-network = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+sc-rpc = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+sc-rpc-api = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+sc-service = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug", features = ["wasmtime"] }
+sc-telemetry = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+sc-transaction-pool = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+sc-transaction-pool-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+sp-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+sp-block-builder = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+sp-blockchain = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+sp-consensus = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+sp-consensus-aura = { version = "0.10.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+sp-core = { version = "6.0.0", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+sp-finality-grandpa = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+sp-inherents = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+sp-keyring = { version = "6.0.0", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+sp-runtime = { version = "6.0.0", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+sp-timestamp = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
 # These dependencies are used for RPC
-pallet-transaction-payment-rpc = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-substrate-frame-rpc-system = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
+pallet-transaction-payment-rpc = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+substrate-frame-rpc-system = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
 # These dependencies are used for runtime benchmarking
-frame-benchmarking = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-frame-benchmarking-cli = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-frame-system = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
-pallet-transaction-payment = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
+frame-benchmarking = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+frame-benchmarking-cli = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+frame-system = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
+pallet-transaction-payment = { version = "4.0.0-dev", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
 
 # Frontier
 fc-cli = { path = "../../client/cli" }
@@ -74,7 +74,7 @@ fp-storage = { path = "../../primitives/storage" }
 frontier-template-runtime = { path = "../runtime", default-features = false, features = ["std"] }
 
 [build-dependencies]
-substrate-build-script-utils = { version = "3.0.0", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27" }
+substrate-build-script-utils = { version = "3.0.0", git = "https://github.com/futureversecom/substrate", branch = "polkadot-v0.9.27-debug" }
 
 [features]
 default = ["aura", "with-rocksdb-weights"]
