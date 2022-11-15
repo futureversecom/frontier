@@ -6,7 +6,6 @@
 #![allow(clippy::new_without_default, clippy::or_fun_call)]
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 
-
 // // A few exports that help ease life for downstream crates.
 pub use frame_support::{
 	traits::{ConstU8, FindAuthor},
@@ -163,7 +162,7 @@ use sp_runtime::{
 	create_runtime_str, generic,
 	traits::{
 		BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, IdentityLookup,
-		PostDispatchInfoOf, Verify,
+		PostDispatchInfoOf, Verify, UniqueSaturatedInto,
 	},
 	transaction_validity::{
 		InvalidTransaction, TransactionPriority, TransactionSource, TransactionValidity,
@@ -191,7 +190,6 @@ pub use frame_support::{
 	PalletId, StorageValue,
 };
 use frame_system::{
-	limits::{BlockLength, BlockWeights},
 	EnsureRoot,
 };
 pub use pallet_grandpa::AuthorityId as GrandpaId;
@@ -240,31 +238,14 @@ const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = 2 * WEIGHT_PER_SECOND;
 
 parameter_types! {
-	pub const BlockHashCount: BlockNumber = 250;
-	pub const Version: RuntimeVersion = VERSION;
-	pub RuntimeBlockLength: BlockLength =
-		BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
-	pub RuntimeBlockWeights: BlockWeights = BlockWeights::builder()
-		.base_block(BlockExecutionWeight::get())
-		.for_class(DispatchClass::all(), |weights| {
-			weights.base_extrinsic = ExtrinsicBaseWeight::get();
-		})
-		.for_class(DispatchClass::Normal, |weights| {
-			weights.max_total = Some(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT);
-		})
-		.for_class(DispatchClass::Operational, |weights| {
-			weights.max_total = Some(MAXIMUM_BLOCK_WEIGHT);
-			// Operational transactions have some extra reserved space, so that they
-			// are included even if block reached `MAXIMUM_BLOCK_WEIGHT`.
-			weights.reserved = Some(
-				MAXIMUM_BLOCK_WEIGHT - NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT
-			);
-		})
-		.avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
-		.build_or_panic();
+	pub BlockWeights: frame_system::limits::BlockWeights = frame_system::limits::BlockWeights
+		::with_sensible_defaults(MAXIMUM_BLOCK_WEIGHT, NORMAL_DISPATCH_RATIO);
+	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
+		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
 	pub const SS58Prefix: u8 = 193;
+	pub const Version: RuntimeVersion = VERSION;
+	pub const BlockHashCount: BlockNumber = 250;
 }
-
 
 impl frame_system::Config for Runtime {
 	/// The identifier used to distinguish between accounts.
@@ -296,11 +277,16 @@ impl frame_system::Config for Runtime {
 	type AccountData = pallet_balances::AccountData<Balance>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
-	type DbWeight = ();
+
+	#[cfg(feature = "with-paritydb-weights")]
+	type DbWeight = frame_support::weights::constants::ParityDbWeight;
+	#[cfg(feature = "with-rocksdb-weights")]
+	type DbWeight = frame_support::weights::constants::RocksDbWeight;
+
 	type BaseCallFilter = frame_support::traits::Everything;
 	type SystemWeightInfo = ();
-	type BlockWeights = RuntimeBlockWeights;
-	type BlockLength = RuntimeBlockLength;
+	type BlockWeights = BlockWeights;
+	type BlockLength = BlockLength;
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
 	type MaxConsumers = ConstU32<16>;
@@ -321,7 +307,7 @@ impl pallet_transaction_payment::Config for Runtime {
 }
 
 parameter_types! {
-	pub const ExistentialDeposit: Balance = 1;
+	pub const ExistentialDeposit: Balance = 500;
 	pub const MaxLocks: u32 = 50;
 	pub const MaxReserves: u32 = 50;
 }
@@ -381,47 +367,6 @@ use crate::constants::EPOCH_DURATION_IN_SLOTS;
 use crate::currency::ONE_ROOT;
 use crate::precompiles::FrontierPrecompiles;
 
-parameter_types! {
-	// phase durations. 1/4 of the last session for each.
-	// in testing: 1min or half of the session for each
-	pub SignedPhase: u32 = EPOCH_DURATION_IN_SLOTS / 4;
-	pub UnsignedPhase: u32 = EPOCH_DURATION_IN_SLOTS / 4;
-	// signed config
-	pub const SignedMaxSubmissions: u32 = 16;
-	pub const SignedMaxRefunds: u32 = 16 / 4;
-	// 40 DOTs fixed deposit..
-	pub const SignedDepositBase: Balance = ONE_ROOT * 40;
-	// 0.01 DOT per KB of solution data.
-	pub const SignedDepositByte: Balance = ONE_ROOT / 1024;
-	// Intentionally zero reward to prevent inflation
-	// `pallet_election_provider_multi_phase::RewardHandler` could be configured to offset any rewards
-	pub SignedRewardBase: Balance = 0;
-	pub BetterUnsignedThreshold: Perbill = Perbill::from_rational(5u32, 10_000);
-	// 4 hour session, 1 hour unsigned phase, 32 offchain executions.
-	pub OffchainRepeat: BlockNumber = UnsignedPhase::get() / 32;
-}
-
-parameter_types! {
-	/// A limit for off-chain phragmen unsigned solution submission.
-	///
-	/// We want to keep it as high as possible, but can't risk having it reject,
-	/// so we always subtract the base block execution weight.
-	pub OffchainSolutionWeightLimit: Weight = RuntimeBlockWeights::get()
-		.get(DispatchClass::Normal)
-		.max_extrinsic
-		.expect("Normal extrinsics have weight limit configured by default; qed")
-		.saturating_sub(BlockExecutionWeight::get());
-
-	/// A limit for off-chain phragmen unsigned solution length.
-	///
-	/// We allow up to 90% of the block's size to be consumed by the solution.
-	pub OffchainSolutionLengthLimit: u32 = Perbill::from_rational(90_u32, 100) *
-		*RuntimeBlockLength::get()
-		.max
-		.get(DispatchClass::Normal);
-}
-
-
 impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime
 where
 	Call: From<C>,
@@ -452,14 +397,14 @@ pub const GAS_PER_SECOND: u64 = 15_000_000;
 /// u64 works for approximations because Weight is a very small unit compared to gas.
 pub const WEIGHT_PER_GAS: u64 = 20_000;
 
-pub struct FutureverseGasWeightMapping;
+pub struct FixedGasWeightMapping;
 
-impl pallet_evm::GasWeightMapping for FutureverseGasWeightMapping {
+impl pallet_evm::GasWeightMapping for FixedGasWeightMapping {
 	fn gas_to_weight(gas: u64) -> Weight {
 		gas.saturating_mul(WEIGHT_PER_GAS)
 	}
 	fn weight_to_gas(weight: Weight) -> u64 {
-		u64::try_from(weight.wrapping_div(WEIGHT_PER_GAS)).unwrap_or(u32::MAX as u64)
+		weight.wrapping_div(WEIGHT_PER_GAS)
 	}
 }
 
@@ -496,7 +441,7 @@ parameter_types! {
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = BaseFee;
-	type GasWeightMapping = FutureverseGasWeightMapping;
+	type GasWeightMapping = FixedGasWeightMapping;
 	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping<Self>;
 	type CallOrigin = EnsureAddressNever<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
@@ -717,7 +662,9 @@ impl_runtime_apis! {
 		}
 
 		fn gas_price() -> U256 {
-			BaseFee::min_gas_price().0
+			// BaseFee::min_gas_price().0?
+			let (gas_price, _) = <Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price();
+			gas_price
 		}
 
 		fn account_code_at(address: H160) -> Vec<u8> {
@@ -759,7 +706,7 @@ impl_runtime_apis! {
 				to,
 				data,
 				value,
-				gas_limit.low_u64(),
+				gas_limit.unique_saturated_into(),
 				max_fee_per_gas,
 				max_priority_fee_per_gas,
 				nonce,
@@ -788,19 +735,18 @@ impl_runtime_apis! {
 			} else {
 				None
 			};
-
 			<Runtime as pallet_evm::Config>::Runner::create(
 				from,
 				data,
 				value,
-				gas_limit.low_u64(),
+				gas_limit.unique_saturated_into(),
 				max_fee_per_gas,
 				max_priority_fee_per_gas,
 				nonce,
 				access_list.unwrap_or_default(),
 				false,
 				false,
-				config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
+				config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config());,
 			).map_err(|err| err.error.into())
 		}
 
@@ -973,7 +919,7 @@ pub mod currency {
 
 /// Common constants of parachains.
 mod constants {
-	use frame_support::weights::{constants::WEIGHT_PER_SECOND, Weight};
+	use frame_support::weights::{constants::WEIGHT_PER_SECOND, RuntimeDbWeight, Weight};
 	use seed_primitives::BlockNumber;
 	use sp_runtime::Perbill;
 
