@@ -469,22 +469,23 @@ impl pallet_base_fee::BaseFeeThreshold for BaseFeeThreshold {
 		Permill::zero()
 	}
 	fn ideal() -> Permill {
-		// blocks > 5% full trigger fee increase, < 5% full trigger fee decrease
-		Permill::from_parts(50_000)
+		Permill::from_parts(500_000)
 	}
 	fn upper() -> Permill {
-		Permill::one()
+		Permill::from_parts(1_000_000)
 	}
 }
 
 parameter_types! {
-	pub const DefaultBaseFeePerGas: u64 = 1_500_000_000_000;
+	pub DefaultBaseFeePerGas: U256 = U256::from(1_000_000_000);
+	pub DefaultElasticity: Permill = Permill::from_parts(125_000);
 }
+
 impl pallet_base_fee::Config for Runtime {
-	type DefaultBaseFeePerGas = DefaultBaseFeePerGas;
 	type Event = Event;
 	type Threshold = BaseFeeThreshold;
-	type DefaultElasticity = ();
+	type DefaultBaseFeePerGas = DefaultBaseFeePerGas;
+	type DefaultElasticity = DefaultElasticity;
 }
 
 parameter_types! {
@@ -492,15 +493,6 @@ parameter_types! {
 	pub BlockGasLimit: U256 = U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT / WEIGHT_PER_GAS);
 	pub PrecompilesValue: FrontierPrecompiles<Runtime> = FrontierPrecompiles::<_>::new();
 }
-
-
-/// Modified london config with higher contract create fee
-const fn seed_london() -> EvmConfig {
-	let mut c = EvmConfig::london();
-	c.gas_transaction_create = 2_000_000;
-	c
-}
-pub static SEED_EVM_CONFIG: EvmConfig = seed_london();
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = BaseFee;
@@ -518,9 +510,6 @@ impl pallet_evm::Config for Runtime {
 	type BlockGasLimit = BlockGasLimit;
 	type OnChargeTransaction = ();
 	type FindAuthor = FindAuthorTruncated<Aura>;
-	fn config() -> &'static EvmConfig {
-		&SEED_EVM_CONFIG
-	}
 }
 
 impl pallet_ethereum::Config for Runtime {
