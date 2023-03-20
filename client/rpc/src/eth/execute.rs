@@ -18,22 +18,18 @@
 
 use std::sync::Arc;
 
-use ethereum_types::{H256, U256};
+use ethereum_types::U256;
 use evm::{ExitError, ExitReason};
 use jsonrpsee::core::RpcResult as Result;
-
-use sc_client_api::backend::{Backend, StateBackend, StorageProvider};
-use sc_network::ExHashT;
+// Substrate
+use sc_client_api::backend::{Backend, StorageProvider};
+use sc_network_common::ExHashT;
 use sc_transaction_pool::ChainApi;
 use sp_api::{ApiExt, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder as BlockBuilderApi;
-use sp_blockchain::{BlockStatus, HeaderBackend};
-use sp_runtime::{
-	generic::BlockId,
-	traits::{BlakeTwo256, Block as BlockT},
-	SaturatedConversion,
-};
-
+use sp_blockchain::HeaderBackend;
+use sp_runtime::{generic::BlockId, traits::Block as BlockT, SaturatedConversion};
+// Frontier
 use fc_rpc_core::types::*;
 use fp_rpc::EthereumRuntimeRPCApi;
 
@@ -65,12 +61,11 @@ impl EstimateGasAdapter for () {
 
 impl<B, C, P, CT, BE, H: ExHashT, A: ChainApi, EGA> Eth<B, C, P, CT, BE, H, A, EGA>
 where
-	B: BlockT<Hash = H256> + Send + Sync + 'static,
-	C: ProvideRuntimeApi<B> + StorageProvider<B, BE>,
-	C: HeaderBackend<B> + Send + Sync + 'static,
+	B: BlockT,
+	C: ProvideRuntimeApi<B>,
 	C::Api: BlockBuilderApi<B> + EthereumRuntimeRPCApi<B>,
+	C: HeaderBackend<B> + StorageProvider<B, BE> + 'static,
 	BE: Backend<B> + 'static,
-	BE::State: StateBackend<BlakeTwo256>,
 	A: ChainApi<Block = B> + 'static,
 	EGA: EstimateGasAdapter,
 {
@@ -112,7 +107,9 @@ where
 			}
 		};
 
-		if let Ok(BlockStatus::Unknown) = self.client.status(id) {
+		if let Err(sp_blockchain::Error::UnknownBlock(_)) =
+			self.client.expect_block_hash_from_id(&id)
+		{
 			return Err(crate::err(JSON_RPC_ERROR_DEFAULT, "header not found", None));
 		}
 
@@ -151,7 +148,12 @@ where
 				}
 				amount
 			}
-			None => max_gas_limit,
+			// If gas limit is not specified in the request we either use the multiplier if supported
+			// or fallback to the block gas limit.
+			None => match api.gas_limit_multiplier_support(&id) {
+				Ok(_) => max_gas_limit,
+				_ => block_gas_limit,
+			},
 		};
 
 		let data = data.map(|d| d.0).unwrap_or_default();
@@ -318,7 +320,8 @@ where
 		const MIN_GAS_PER_TX: U256 = U256([21_000, 0, 0, 0]);
 
 		// Get best hash (TODO missing support for estimating gas historically)
-		let best_hash = client.info().best_hash;
+		let substrate_hash = client.info().best_hash;
+		let id = BlockId::Hash(substrate_hash);
 
 		// Adapt request for gas estimation.
 		let request = EGA::adapt_request(request);
@@ -332,7 +335,7 @@ where
 			if let Some(to) = request.to {
 				let to_code = client
 					.runtime_api()
-					.account_code_at(&BlockId::Hash(best_hash), to)
+					.account_code_at(&id, to)
 					.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?;
 				if to_code.is_empty() {
 					return Ok(MIN_GAS_PER_TX);
@@ -354,11 +357,8 @@ where
 		};
 
 		let block_gas_limit = {
-			let substrate_hash = client.info().best_hash;
-			let id = BlockId::Hash(substrate_hash);
-			let schema = frontier_backend_client::onchain_storage_schema::<B, C, BE>(&client, id);
+			let schema = fc_storage::onchain_storage_schema(client.as_ref(), substrate_hash);
 			let block = block_data_cache.current_block(schema, substrate_hash).await;
-
 			block
 				.ok_or_else(|| internal_err("block unavailable, cannot query gas limit"))?
 				.header
@@ -366,6 +366,8 @@ where
 		};
 
 		let max_gas_limit = block_gas_limit * self.execute_gas_limit_multiplier;
+
+		let api = client.runtime_api();
 
 		// Determine the highest possible gas limits
 		let mut highest = match request.gas {
@@ -378,17 +380,20 @@ where
 				}
 				amount
 			}
-			None => max_gas_limit,
+			// If gas limit is not specified in the request we either use the multiplier if supported
+			// or fallback to the block gas limit.
+			None => match api.gas_limit_multiplier_support(&id) {
+				Ok(_) => max_gas_limit,
+				_ => block_gas_limit,
+			},
 		};
-
-		let api = client.runtime_api();
 
 		// Recap the highest gas allowance with account's balance.
 		if let Some(from) = request.from {
 			let gas_price = gas_price.unwrap_or_default();
 			if gas_price > U256::zero() {
 				let balance = api
-					.account_basic(&BlockId::Hash(best_hash), from)
+					.account_basic(&id, from)
 					.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?
 					.balance;
 				let mut available = balance;
@@ -456,7 +461,7 @@ where
 							// Legacy pre-london
 							#[allow(deprecated)]
 							api.call_before_version_2(
-								&BlockId::Hash(best_hash),
+								&id,
 								from.unwrap_or_default(),
 								to,
 								data,
@@ -472,7 +477,7 @@ where
 							// Post-london
 							#[allow(deprecated)]
 							api.call_before_version_4(
-								&BlockId::Hash(best_hash),
+								&id,
 								from.unwrap_or_default(),
 								to,
 								data,
@@ -489,7 +494,7 @@ where
 							// Post-london + access list support
 							let access_list = access_list.unwrap_or_default();
 							api.call(
-								&BlockId::Hash(best_hash),
+								&id,
 								from.unwrap_or_default(),
 								to,
 								data,
@@ -517,7 +522,7 @@ where
 							// Legacy pre-london
 							#[allow(deprecated)]
 							api.create_before_version_2(
-								&BlockId::Hash(best_hash),
+								&id,
 								from.unwrap_or_default(),
 								data,
 								value.unwrap_or_default(),
@@ -532,7 +537,7 @@ where
 							// Post-london
 							#[allow(deprecated)]
 							api.create_before_version_4(
-								&BlockId::Hash(best_hash),
+								&id,
 								from.unwrap_or_default(),
 								data,
 								value.unwrap_or_default(),
@@ -548,7 +553,7 @@ where
 							// Post-london + access list support
 							let access_list = access_list.unwrap_or_default();
 							api.create(
-								&BlockId::Hash(best_hash),
+								&id,
 								from.unwrap_or_default(),
 								data,
 								value.unwrap_or_default(),
@@ -580,7 +585,7 @@ where
 		let api_version = if let Ok(Some(api_version)) =
 			client
 				.runtime_api()
-				.api_version::<dyn EthereumRuntimeRPCApi<B>>(&BlockId::Hash(best_hash))
+				.api_version::<dyn EthereumRuntimeRPCApi<B>>(&id)
 		{
 			api_version
 		} else {
@@ -589,7 +594,7 @@ where
 
 		// Verify that the transaction succeed with highest capacity
 		let cap = highest;
-		let estimate_mode = !cfg!(feature = "rpc_binary_search_estimate");
+		let estimate_mode = !cfg!(feature = "rpc-binary-search-estimate");
 		let ExecutableResult {
 			data,
 			exit_reason,
@@ -646,11 +651,11 @@ where
 			other => error_on_execution_failure(&other, &data)?,
 		};
 
-		#[cfg(not(feature = "rpc_binary_search_estimate"))]
+		#[cfg(not(feature = "rpc-binary-search-estimate"))]
 		{
 			Ok(used_gas)
 		}
-		#[cfg(feature = "rpc_binary_search_estimate")]
+		#[cfg(feature = "rpc-binary-search-estimate")]
 		{
 			// On binary search, evm estimate mode is disabled
 			let estimate_mode = false;
@@ -684,7 +689,9 @@ where
 						}
 						previous_highest = highest;
 					}
-					ExitReason::Revert(_) | ExitReason::Error(ExitError::OutOfGas) => {
+					ExitReason::Revert(_)
+					| ExitReason::Error(ExitError::OutOfGas)
+					| ExitReason::Error(ExitError::InvalidCode(_)) => {
 						lowest = mid;
 					}
 					other => error_on_execution_failure(&other, &data)?,

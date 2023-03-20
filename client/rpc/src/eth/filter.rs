@@ -21,16 +21,16 @@ use std::{marker::PhantomData, sync::Arc, time};
 use ethereum::BlockV2 as EthereumBlock;
 use ethereum_types::{H256, U256};
 use jsonrpsee::core::{async_trait, RpcResult as Result};
-
-use sc_client_api::backend::{Backend, StateBackend, StorageProvider};
+// Substrate
+use sc_client_api::backend::{Backend, StorageProvider};
 use sp_api::ProvideRuntimeApi;
 use sp_blockchain::HeaderBackend;
 use sp_core::hashing::keccak_256;
 use sp_runtime::{
 	generic::BlockId,
-	traits::{BlakeTwo256, Block as BlockT, NumberFor, One, Saturating, UniqueSaturatedInto},
+	traits::{Block as BlockT, NumberFor, One, Saturating, UniqueSaturatedInto},
 };
-
+// Frontier
 use fc_rpc_core::{types::*, EthFilterApiServer};
 use fp_rpc::{EthereumRuntimeRPCApi, TransactionStatus};
 
@@ -69,8 +69,8 @@ impl<B: BlockT, C, BE> EthFilter<B, C, BE> {
 
 impl<B, C, BE> EthFilter<B, C, BE>
 where
-	B: BlockT<Hash = H256> + Send + Sync + 'static,
-	C: HeaderBackend<B> + Send + Sync + 'static,
+	B: BlockT,
+	C: HeaderBackend<B>,
 {
 	fn create_filter(&self, filter_type: FilterType) -> Result<U256> {
 		let block_number =
@@ -83,7 +83,10 @@ where
 					self.max_stored_filters
 				)));
 			}
-			let last_key = match locked.iter().next_back() {
+			let last_key = match {
+				let mut iter = locked.iter();
+				iter.next_back()
+			} {
 				Some((k, _)) => *k,
 				None => U256::zero(),
 			};
@@ -108,12 +111,11 @@ where
 #[async_trait]
 impl<B, C, BE> EthFilterApiServer for EthFilter<B, C, BE>
 where
-	B: BlockT<Hash = H256> + Send + Sync + 'static,
-	C: ProvideRuntimeApi<B> + StorageProvider<B, BE>,
-	C: HeaderBackend<B> + Send + Sync + 'static,
+	B: BlockT,
+	C: ProvideRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
+	C: HeaderBackend<B> + StorageProvider<B, BE> + 'static,
 	BE: Backend<B> + 'static,
-	BE::State: StateBackend<BlakeTwo256>,
 {
 	fn new_filter(&self, filter: Filter) -> Result<U256> {
 		self.create_filter(FilterType::Log(filter))
@@ -244,10 +246,8 @@ where
 						internal_err(format!("Expect block number from id: {}", id))
 					})?;
 
-					let schema = frontier_backend_client::onchain_storage_schema::<B, C, BE>(
-						client.as_ref(),
-						id,
-					);
+					let schema =
+						fc_storage::onchain_storage_schema(client.as_ref(), substrate_hash);
 
 					let block = block_data_cache.current_block(schema, substrate_hash).await;
 					if let Some(block) = block {
@@ -363,18 +363,17 @@ where
 
 		let mut ret: Vec<Log> = Vec::new();
 		if let Some(hash) = filter.block_hash {
-			let id = match frontier_backend_client::load_hash::<B>(backend.as_ref(), hash)
-				.map_err(|err| internal_err(format!("{:?}", err)))?
+			let substrate_hash = match frontier_backend_client::load_hash::<B, C>(
+				client.as_ref(),
+				backend.as_ref(),
+				hash,
+			)
+			.map_err(|err| internal_err(format!("{:?}", err)))?
 			{
 				Some(hash) => hash,
 				_ => return Ok(Vec::new()),
 			};
-			let substrate_hash = client
-				.expect_block_hash_from_id(&id)
-				.map_err(|_| internal_err(format!("Expect block number from id: {}", id)))?;
-
-			let schema =
-				frontier_backend_client::onchain_storage_schema::<B, C, BE>(client.as_ref(), id);
+			let schema = fc_storage::onchain_storage_schema(client.as_ref(), substrate_hash);
 
 			let block = block_data_cache.current_block(schema, substrate_hash).await;
 			let statuses = block_data_cache
@@ -426,12 +425,11 @@ async fn filter_range_logs<B: BlockT, C, BE>(
 	to: NumberFor<B>,
 ) -> Result<()>
 where
-	B: BlockT<Hash = H256> + Send + Sync + 'static,
-	C: ProvideRuntimeApi<B> + StorageProvider<B, BE>,
-	C: HeaderBackend<B> + Send + Sync + 'static,
+	B: BlockT,
+	C: ProvideRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
+	C: HeaderBackend<B> + StorageProvider<B, BE> + 'static,
 	BE: Backend<B> + 'static,
-	BE::State: StateBackend<BlakeTwo256>,
 {
 	// Max request duration of 10 seconds.
 	let max_duration = time::Duration::from_secs(10);
@@ -455,7 +453,7 @@ where
 			.expect_block_hash_from_id(&id)
 			.map_err(|_| internal_err(format!("Expect block number from id: {}", id)))?;
 
-		let schema = frontier_backend_client::onchain_storage_schema::<B, C, BE>(client, id);
+		let schema = fc_storage::onchain_storage_schema(client, substrate_hash);
 
 		let block = block_data_cache.current_block(schema, substrate_hash).await;
 

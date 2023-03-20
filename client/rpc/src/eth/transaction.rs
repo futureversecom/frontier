@@ -21,19 +21,16 @@ use std::sync::Arc;
 use ethereum::TransactionV2 as EthereumTransaction;
 use ethereum_types::{H256, U256, U64};
 use jsonrpsee::core::RpcResult as Result;
-
-use sc_client_api::backend::{Backend, StateBackend, StorageProvider};
-use sc_network::ExHashT;
+// Substrate
+use sc_client_api::backend::{Backend, StorageProvider};
+use sc_network_common::ExHashT;
 use sc_transaction_pool::ChainApi;
 use sc_transaction_pool_api::InPoolTransaction;
 use sp_api::{ApiExt, ProvideRuntimeApi};
 use sp_blockchain::HeaderBackend;
 use sp_core::hashing::keccak_256;
-use sp_runtime::{
-	generic::BlockId,
-	traits::{BlakeTwo256, Block as BlockT},
-};
-
+use sp_runtime::{generic::BlockId, traits::Block as BlockT};
+// Frontier
 use fc_rpc_core::types::*;
 use fp_rpc::EthereumRuntimeRPCApi;
 
@@ -42,18 +39,17 @@ use crate::{
 	frontier_backend_client, internal_err,
 };
 
-impl<B, C, P, CT, BE, H: ExHashT, A: ChainApi> Eth<B, C, P, CT, BE, H, A>
+impl<B, C, P, CT, BE, H: ExHashT, A: ChainApi, EGA> Eth<B, C, P, CT, BE, H, A, EGA>
 where
-	B: BlockT<Hash = H256> + Send + Sync + 'static,
-	C: ProvideRuntimeApi<B> + StorageProvider<B, BE> + HeaderBackend<B> + Send + Sync + 'static,
+	B: BlockT,
+	C: ProvideRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
+	C: HeaderBackend<B> + StorageProvider<B, BE> + 'static,
 	BE: Backend<B> + 'static,
-	BE::State: StateBackend<BlakeTwo256>,
 	A: ChainApi<Block = B> + 'static,
 {
 	pub async fn transaction_by_hash(&self, hash: H256) -> Result<Option<Transaction>> {
 		let client = Arc::clone(&self.client);
-		let overrides = Arc::clone(&self.overrides);
 		let block_data_cache = Arc::clone(&self.block_data_cache);
 		let backend = Arc::clone(&self.backend);
 		let graph = Arc::clone(&self.graph);
@@ -127,36 +123,35 @@ where
 			}
 		};
 
-		let id = match frontier_backend_client::load_hash::<B>(backend.as_ref(), hash)
-			.map_err(|err| internal_err(format!("{:?}", err)))?
+		let substrate_hash = match frontier_backend_client::load_hash::<B, C>(
+			client.as_ref(),
+			backend.as_ref(),
+			hash,
+		)
+		.map_err(|err| internal_err(format!("{:?}", err)))?
 		{
 			Some(hash) => hash,
 			_ => return Ok(None),
 		};
-		let substrate_hash = client
-			.expect_block_hash_from_id(&id)
-			.map_err(|_| internal_err(format!("Expect block number from id: {}", id)))?;
 
-		let schema =
-			frontier_backend_client::onchain_storage_schema::<B, C, BE>(client.as_ref(), id);
-		let handler = overrides
-			.schemas
-			.get(&schema)
-			.unwrap_or(&overrides.fallback);
+		let schema = fc_storage::onchain_storage_schema(client.as_ref(), substrate_hash);
 
 		let block = block_data_cache.current_block(schema, substrate_hash).await;
 		let statuses = block_data_cache
 			.current_transaction_statuses(schema, substrate_hash)
 			.await;
 
-		let base_fee = handler.base_fee(&id);
+		let base_fee = client
+			.runtime_api()
+			.gas_price(&BlockId::Hash(substrate_hash))
+			.unwrap_or_default();
 
 		match (block, statuses) {
 			(Some(block), Some(statuses)) => Ok(Some(transaction_build(
 				block.transactions[index].clone(),
 				Some(block),
 				Some(statuses[index].clone()),
-				base_fee,
+				Some(base_fee),
 			))),
 			_ => Ok(None),
 		}
@@ -168,35 +163,33 @@ where
 		index: Index,
 	) -> Result<Option<Transaction>> {
 		let client = Arc::clone(&self.client);
-		let overrides = Arc::clone(&self.overrides);
 		let block_data_cache = Arc::clone(&self.block_data_cache);
 		let backend = Arc::clone(&self.backend);
 
-		let id = match frontier_backend_client::load_hash::<B>(backend.as_ref(), hash)
-			.map_err(|err| internal_err(format!("{:?}", err)))?
+		let substrate_hash = match frontier_backend_client::load_hash::<B, C>(
+			client.as_ref(),
+			backend.as_ref(),
+			hash,
+		)
+		.map_err(|err| internal_err(format!("{:?}", err)))?
 		{
 			Some(hash) => hash,
 			_ => return Ok(None),
 		};
-		let substrate_hash = client
-			.expect_block_hash_from_id(&id)
-			.map_err(|_| internal_err(format!("Expect block number from id: {}", id)))?;
 
 		let index = index.value();
 
-		let schema =
-			frontier_backend_client::onchain_storage_schema::<B, C, BE>(client.as_ref(), id);
-		let handler = overrides
-			.schemas
-			.get(&schema)
-			.unwrap_or(&overrides.fallback);
+		let schema = fc_storage::onchain_storage_schema(client.as_ref(), substrate_hash);
 
 		let block = block_data_cache.current_block(schema, substrate_hash).await;
 		let statuses = block_data_cache
 			.current_transaction_statuses(schema, substrate_hash)
 			.await;
 
-		let base_fee = handler.base_fee(&id);
+		let base_fee = client
+			.runtime_api()
+			.gas_price(&BlockId::Hash(substrate_hash))
+			.unwrap_or_default();
 
 		match (block, statuses) {
 			(Some(block), Some(statuses)) => {
@@ -207,7 +200,7 @@ where
 						transaction.clone(),
 						Some(block),
 						Some(status.clone()),
-						base_fee,
+						Some(base_fee),
 					)))
 				} else {
 					Err(internal_err(format!("{:?} is out of bounds", index)))
@@ -223,7 +216,6 @@ where
 		index: Index,
 	) -> Result<Option<Transaction>> {
 		let client = Arc::clone(&self.client);
-		let overrides = Arc::clone(&self.overrides);
 		let block_data_cache = Arc::clone(&self.block_data_cache);
 		let backend = Arc::clone(&self.backend);
 
@@ -240,19 +232,14 @@ where
 			.map_err(|_| internal_err(format!("Expect block number from id: {}", id)))?;
 
 		let index = index.value();
-		let schema =
-			frontier_backend_client::onchain_storage_schema::<B, C, BE>(client.as_ref(), id);
-		let handler = overrides
-			.schemas
-			.get(&schema)
-			.unwrap_or(&overrides.fallback);
+		let schema = fc_storage::onchain_storage_schema(client.as_ref(), substrate_hash);
 
 		let block = block_data_cache.current_block(schema, substrate_hash).await;
 		let statuses = block_data_cache
 			.current_transaction_statuses(schema, substrate_hash)
 			.await;
 
-		let base_fee = handler.base_fee(&id);
+		let base_fee = client.runtime_api().gas_price(&id).unwrap_or_default();
 
 		match (block, statuses) {
 			(Some(block), Some(statuses)) => {
@@ -263,7 +250,7 @@ where
 						transaction.clone(),
 						Some(block),
 						Some(status.clone()),
-						base_fee,
+						Some(base_fee),
 					)))
 				} else {
 					Err(internal_err(format!("{:?} is out of bounds", index)))
@@ -291,18 +278,18 @@ where
 			None => return Ok(None),
 		};
 
-		let id = match frontier_backend_client::load_hash::<B>(backend.as_ref(), hash)
-			.map_err(|err| internal_err(format!("{:?}", err)))?
+		let substrate_hash = match frontier_backend_client::load_hash::<B, C>(
+			client.as_ref(),
+			backend.as_ref(),
+			hash,
+		)
+		.map_err(|err| internal_err(format!("{:?}", err)))?
 		{
 			Some(hash) => hash,
 			_ => return Ok(None),
 		};
-		let substrate_hash = client
-			.expect_block_hash_from_id(&id)
-			.map_err(|_| internal_err(format!("Expect block number from id: {}", id)))?;
 
-		let schema =
-			frontier_backend_client::onchain_storage_schema::<B, C, BE>(client.as_ref(), id);
+		let schema = fc_storage::onchain_storage_schema(client.as_ref(), substrate_hash);
 		let handler = overrides
 			.schemas
 			.get(&schema)
@@ -312,8 +299,9 @@ where
 		let statuses = block_data_cache
 			.current_transaction_statuses(schema, substrate_hash)
 			.await;
-		let receipts = handler.current_receipts(&id);
-		let is_eip1559 = handler.is_eip1559(&id);
+
+		let receipts = handler.current_receipts(substrate_hash);
+		let is_eip1559 = handler.is_eip1559(substrate_hash);
 
 		match (block, statuses, receipts) {
 			(Some(block), Some(statuses), Some(receipts)) => {
@@ -382,13 +370,13 @@ where
 				let status = statuses[index].clone();
 				let mut cumulative_receipts = receipts;
 				cumulative_receipts.truncate((status.transaction_index + 1) as usize);
-
 				let transaction = block.transactions[index].clone();
 				let effective_gas_price = match transaction {
 					EthereumTransaction::Legacy(t) => t.gas_price,
 					EthereumTransaction::EIP2930(t) => t.gas_price,
-					EthereumTransaction::EIP1559(t) => handler
-						.base_fee(&id)
+					EthereumTransaction::EIP1559(t) => client
+						.runtime_api()
+						.gas_price(&BlockId::Hash(substrate_hash))
 						.unwrap_or_default()
 						.checked_add(t.max_priority_fee_per_gas)
 						.unwrap_or_else(U256::max_value)

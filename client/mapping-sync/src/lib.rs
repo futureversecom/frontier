@@ -22,38 +22,89 @@ mod worker;
 
 pub use worker::{MappingSyncWorker, SyncStrategy};
 
-use fp_consensus::FindLogError;
-use fp_rpc::EthereumRuntimeRPCApi;
-use sc_client_api::BlockOf;
+use std::sync::Arc;
+
+// Substrate
+use sc_client_api::backend::{Backend, StorageProvider};
 use sp_api::{ApiExt, ProvideRuntimeApi};
-use sp_blockchain::HeaderBackend;
+use sp_blockchain::{Backend as _, HeaderBackend};
 use sp_runtime::{
 	generic::BlockId,
 	traits::{Block as BlockT, Header as HeaderT, Zero},
 };
+// Frontier
+use fc_storage::OverrideHandle;
+use fp_consensus::{FindLogError, Hashes, Log, PostLog, PreLog};
+use fp_rpc::EthereumRuntimeRPCApi;
 
-pub fn sync_block<Block: BlockT>(
+pub fn sync_block<Block: BlockT, C, BE>(
+	client: &C,
+	overrides: Arc<OverrideHandle<Block>>,
 	backend: &fc_db::Backend<Block>,
 	header: &Block::Header,
-) -> Result<(), String> {
+) -> Result<(), String>
+where
+	C: StorageProvider<Block, BE> + HeaderBackend<Block>,
+	BE: Backend<Block>,
+{
+	let substrate_block_hash = header.hash();
 	match fp_consensus::find_log(header.digest()) {
 		Ok(log) => {
-			let post_hashes = log.into_hashes();
-
-			let mapping_commitment = fc_db::MappingCommitment {
-				block_hash: header.hash(),
-				ethereum_block_hash: post_hashes.block_hash,
-				ethereum_transaction_hashes: post_hashes.transaction_hashes,
+			let gen_from_hashes = |hashes: Hashes| -> fc_db::MappingCommitment<Block> {
+				fc_db::MappingCommitment {
+					block_hash: substrate_block_hash,
+					ethereum_block_hash: hashes.block_hash,
+					ethereum_transaction_hashes: hashes.transaction_hashes,
+				}
 			};
-			backend.mapping().write_hashes(mapping_commitment)?;
+			let gen_from_block = |block| -> fc_db::MappingCommitment<Block> {
+				let hashes = Hashes::from_block(block);
+				gen_from_hashes(hashes)
+			};
 
-			Ok(())
+			match log {
+				Log::Pre(PreLog::Block(block)) => {
+					let mapping_commitment = gen_from_block(block);
+					backend.mapping().write_hashes(mapping_commitment)
+				}
+				Log::Post(post_log) => match post_log {
+					PostLog::Hashes(hashes) => {
+						let mapping_commitment = gen_from_hashes(hashes);
+						backend.mapping().write_hashes(mapping_commitment)
+					}
+					PostLog::Block(block) => {
+						let mapping_commitment = gen_from_block(block);
+						backend.mapping().write_hashes(mapping_commitment)
+					}
+					PostLog::BlockHash(expect_eth_block_hash) => {
+						let schema =
+							fc_storage::onchain_storage_schema(client, substrate_block_hash);
+						let ethereum_block = overrides
+							.schemas
+							.get(&schema)
+							.unwrap_or(&overrides.fallback)
+							.current_block(substrate_block_hash);
+						match ethereum_block {
+							Some(block) => {
+								let got_eth_block_hash = block.header.hash();
+								if got_eth_block_hash != expect_eth_block_hash {
+									Err(format!(
+										"Ethereum block hash mismatch: \
+										frontier consensus digest ({expect_eth_block_hash:?}), \
+										db state ({got_eth_block_hash:?})"
+									))
+								} else {
+									let mapping_commitment = gen_from_block(block);
+									backend.mapping().write_hashes(mapping_commitment)
+								}
+							}
+							None => backend.mapping().write_none(substrate_block_hash),
+						}
+					}
+				},
+			}
 		}
-		Err(FindLogError::NotFound) => {
-			backend.mapping().write_none(header.hash())?;
-
-			Ok(())
-		}
+		Err(FindLogError::NotFound) => backend.mapping().write_none(substrate_block_hash),
 		Err(FindLogError::MultipleLogs) => Err("Multiple logs found".to_string()),
 	}
 }
@@ -64,21 +115,29 @@ pub fn sync_genesis_block<Block: BlockT, C>(
 	header: &Block::Header,
 ) -> Result<(), String>
 where
-	C: ProvideRuntimeApi<Block> + Send + Sync + HeaderBackend<Block> + BlockOf,
+	C: ProvideRuntimeApi<Block>,
 	C::Api: EthereumRuntimeRPCApi<Block>,
 {
 	let id = BlockId::Hash(header.hash());
 
-	let has_api = client
+	if let Some(api_version) = client
 		.runtime_api()
-		.has_api::<dyn EthereumRuntimeRPCApi<Block>>(&id)
-		.map_err(|e| format!("{:?}", e))?;
-
-	if has_api {
-		let block = client
-			.runtime_api()
-			.current_block(&id)
-			.map_err(|e| format!("{:?}", e))?;
+		.api_version::<dyn EthereumRuntimeRPCApi<Block>>(&id)
+		.map_err(|e| format!("{:?}", e))?
+	{
+		let block = if api_version > 1 {
+			client
+				.runtime_api()
+				.current_block(&id)
+				.map_err(|e| format!("{:?}", e))?
+		} else {
+			#[allow(deprecated)]
+			let legacy_block = client
+				.runtime_api()
+				.current_block_before_version_2(&id)
+				.map_err(|e| format!("{:?}", e))?;
+			legacy_block.map(|block| block.into())
+		};
 		let block_hash = block
 			.ok_or_else(|| "Ethereum genesis block not found".to_string())?
 			.header
@@ -91,27 +150,32 @@ where
 		backend.mapping().write_hashes(mapping_commitment)?;
 	} else {
 		backend.mapping().write_none(header.hash())?;
-	}
+	};
 
 	Ok(())
 }
 
-pub fn sync_one_block<Block: BlockT, C, B>(
+pub fn sync_one_block<Block: BlockT, C, BE>(
 	client: &C,
-	substrate_backend: &B,
+	substrate_backend: &BE,
+	overrides: Arc<OverrideHandle<Block>>,
 	frontier_backend: &fc_db::Backend<Block>,
 	sync_from: <Block::Header as HeaderT>::Number,
 	strategy: SyncStrategy,
 ) -> Result<bool, String>
 where
-	C: ProvideRuntimeApi<Block> + Send + Sync + HeaderBackend<Block> + BlockOf,
+	C: ProvideRuntimeApi<Block>,
 	C::Api: EthereumRuntimeRPCApi<Block>,
-	B: sp_blockchain::HeaderBackend<Block> + sp_blockchain::Backend<Block>,
+	C: HeaderBackend<Block> + StorageProvider<Block, BE>,
+	BE: Backend<Block>,
 {
 	let mut current_syncing_tips = frontier_backend.meta().current_syncing_tips()?;
 
 	if current_syncing_tips.is_empty() {
-		let mut leaves = substrate_backend.leaves().map_err(|e| format!("{:?}", e))?;
+		let mut leaves = substrate_backend
+			.blockchain()
+			.leaves()
+			.map_err(|e| format!("{:?}", e))?;
 		if leaves.is_empty() {
 			return Ok(false);
 		}
@@ -120,9 +184,12 @@ where
 
 	let mut operating_header = None;
 	while let Some(checking_tip) = current_syncing_tips.pop() {
-		if let Some(checking_header) =
-			fetch_header(substrate_backend, frontier_backend, checking_tip, sync_from)?
-		{
+		if let Some(checking_header) = fetch_header(
+			substrate_backend.blockchain(),
+			frontier_backend,
+			checking_tip,
+			sync_from,
+		)? {
 			operating_header = Some(checking_header);
 			break;
 		}
@@ -150,7 +217,7 @@ where
 		{
 			return Ok(false);
 		}
-		sync_block(frontier_backend, &operating_header)?;
+		sync_block(client, overrides, frontier_backend, &operating_header)?;
 
 		current_syncing_tips.push(*operating_header.parent_hash());
 		frontier_backend
@@ -160,18 +227,20 @@ where
 	}
 }
 
-pub fn sync_blocks<Block: BlockT, C, B>(
+pub fn sync_blocks<Block: BlockT, C, BE>(
 	client: &C,
-	substrate_backend: &B,
+	substrate_backend: &BE,
+	overrides: Arc<OverrideHandle<Block>>,
 	frontier_backend: &fc_db::Backend<Block>,
 	limit: usize,
 	sync_from: <Block::Header as HeaderT>::Number,
 	strategy: SyncStrategy,
 ) -> Result<bool, String>
 where
-	C: ProvideRuntimeApi<Block> + Send + Sync + HeaderBackend<Block> + BlockOf,
+	C: ProvideRuntimeApi<Block>,
 	C::Api: EthereumRuntimeRPCApi<Block>,
-	B: sp_blockchain::HeaderBackend<Block> + sp_blockchain::Backend<Block>,
+	C: HeaderBackend<Block> + StorageProvider<Block, BE>,
+	BE: Backend<Block>,
 {
 	let mut synced_any = false;
 
@@ -180,6 +249,7 @@ where
 			|| sync_one_block(
 				client,
 				substrate_backend,
+				overrides.clone(),
 				frontier_backend,
 				sync_from,
 				strategy,
@@ -189,20 +259,20 @@ where
 	Ok(synced_any)
 }
 
-pub fn fetch_header<Block: BlockT, B>(
-	substrate_backend: &B,
+pub fn fetch_header<Block: BlockT, BE>(
+	substrate_backend: &BE,
 	frontier_backend: &fc_db::Backend<Block>,
 	checking_tip: Block::Hash,
 	sync_from: <Block::Header as HeaderT>::Number,
 ) -> Result<Option<Block::Header>, String>
 where
-	B: sp_blockchain::HeaderBackend<Block> + sp_blockchain::Backend<Block>,
+	BE: HeaderBackend<Block>,
 {
 	if frontier_backend.mapping().is_synced(&checking_tip)? {
 		return Ok(None);
 	}
 
-	match substrate_backend.header(BlockId::Hash(checking_tip)) {
+	match substrate_backend.header(checking_tip) {
 		Ok(Some(checking_header)) if checking_header.number() >= &sync_from => {
 			Ok(Some(checking_header))
 		}

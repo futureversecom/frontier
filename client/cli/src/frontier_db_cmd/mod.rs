@@ -18,20 +18,25 @@
 
 mod mapping_db;
 mod meta_db;
+#[cfg(test)]
 mod tests;
 pub(crate) mod utils;
 
-use mapping_db::{MappingDb, MappingKey, MappingValue};
-use meta_db::{MetaDb, MetaKey, MetaValue};
-
-use clap::ArgEnum;
-use sc_cli::{PruningParams, SharedParams};
-use serde::Deserialize;
 use std::{path::PathBuf, str::FromStr, sync::Arc};
 
+use clap::ValueEnum;
+use ethereum_types::H256;
+use serde::Deserialize;
+// Substrate
+use sc_cli::{PruningParams, SharedParams};
+use sp_api::ProvideRuntimeApi;
+use sp_blockchain::HeaderBackend;
 use sp_runtime::traits::Block as BlockT;
 
-use ethereum_types::H256;
+use self::{
+	mapping_db::{MappingDb, MappingKey, MappingValue},
+	meta_db::{MetaDb, MetaKey, MetaValue},
+};
 
 /// Cli tool to interact with the Frontier backend db
 #[derive(Debug, Clone, clap::Parser)]
@@ -39,17 +44,17 @@ pub struct FrontierDbCmd {
 	/// Specify the operation to perform.
 	///
 	/// Can be one of `create | read | update | delete`.
-	#[clap(arg_enum, ignore_case = true, required = true)]
+	#[arg(value_enum, ignore_case = true, required = true)]
 	pub operation: Operation,
 
 	/// Specify the column to query.
 	///
 	/// Can be one of `meta | block | transaction`.
-	#[clap(arg_enum, ignore_case = true, required = true)]
+	#[arg(value_enum, ignore_case = true, required = true)]
 	pub column: Column,
 
 	/// Specify the key to either read or write.
-	#[clap(short('k'), long, required = true)]
+	#[arg(short('k'), long, required = true)]
 	pub key: String,
 
 	/// Specify the value to write.
@@ -58,19 +63,19 @@ pub struct FrontierDbCmd {
 	/// - When `None`, read from stdin.
 	///
 	/// In any case, payload must be serializable to a known type.
-	#[clap(long, parse(from_os_str))]
+	#[arg(long)]
 	pub value: Option<PathBuf>,
 
 	/// Shared parameters
-	#[clap(flatten)]
+	#[command(flatten)]
 	pub shared_params: SharedParams,
 
 	#[allow(missing_docs)]
-	#[clap(flatten)]
+	#[command(flatten)]
 	pub pruning_params: PruningParams,
 }
 
-#[derive(ArgEnum, Debug, Clone)]
+#[derive(ValueEnum, Debug, Clone)]
 pub enum Operation {
 	Create,
 	Read,
@@ -78,7 +83,7 @@ pub enum Operation {
 	Delete,
 }
 
-#[derive(ArgEnum, Debug, Clone)]
+#[derive(ValueEnum, Debug, Clone)]
 pub enum Column {
 	Meta,
 	Block,
@@ -99,9 +104,9 @@ impl FrontierDbCmd {
 		backend: Arc<fc_db::Backend<B>>,
 	) -> sc_cli::Result<()>
 	where
-		C: sp_api::ProvideRuntimeApi<B>,
+		C: ProvideRuntimeApi<B>,
 		C::Api: fp_rpc::EthereumRuntimeRPCApi<B>,
-		C: sp_blockchain::HeaderBackend<B>,
+		C: HeaderBackend<B>,
 	{
 		match self.column {
 			Column::Meta => {

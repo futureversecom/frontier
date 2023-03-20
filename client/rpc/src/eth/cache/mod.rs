@@ -24,14 +24,13 @@ use std::{
 	sync::{Arc, Mutex},
 };
 
-use self::lru_cache::LRUCacheByteLimited;
 use ethereum::BlockV2 as EthereumBlock;
-use ethereum_types::{H256, U256};
+use ethereum_types::U256;
 use futures::StreamExt;
 use tokio::sync::{mpsc, oneshot};
-
+// Substrate
 use sc_client_api::{
-	backend::{Backend, StateBackend, StorageProvider},
+	backend::{Backend, StorageProvider},
 	client::BlockchainEvents,
 };
 use sc_service::SpawnTaskHandle;
@@ -39,17 +38,15 @@ use sp_api::ProvideRuntimeApi;
 use sp_blockchain::HeaderBackend;
 use sp_runtime::{
 	generic::BlockId,
-	traits::{BlakeTwo256, Block as BlockT, Header as HeaderT, UniqueSaturatedInto},
+	traits::{Block as BlockT, Header as HeaderT, UniqueSaturatedInto},
 };
-
+// Frontier
 use fc_rpc_core::types::*;
+use fc_storage::{OverrideHandle, StorageOverride};
 use fp_rpc::{EthereumRuntimeRPCApi, TransactionStatus};
 use fp_storage::EthereumStorageSchema;
 
-use crate::{
-	frontier_backend_client,
-	overrides::{OverrideHandle, StorageOverride},
-};
+use self::lru_cache::LRUCacheByteLimited;
 
 type WaitList<Hash, T> = HashMap<Hash, Vec<oneshot::Sender<Option<T>>>>;
 
@@ -132,7 +129,7 @@ impl<B: BlockT> EthBlockDataCacheTask<B> {
 						task_tx.clone(),
 						move |handler| FetchedCurrentBlock {
 							block_hash,
-							block: handler.current_block(&BlockId::Hash(block_hash)),
+							block: handler.current_block(block_hash),
 						},
 					),
 					FetchedCurrentBlock { block_hash, block } => {
@@ -162,8 +159,7 @@ impl<B: BlockT> EthBlockDataCacheTask<B> {
 						task_tx.clone(),
 						move |handler| FetchedCurrentTransactionStatuses {
 							block_hash,
-							statuses: handler
-								.current_transaction_statuses(&BlockId::Hash(block_hash)),
+							statuses: handler.current_transaction_statuses(block_hash),
 						},
 					),
 					FetchedCurrentTransactionStatuses {
@@ -198,8 +194,8 @@ impl<B: BlockT> EthBlockDataCacheTask<B> {
 		task_tx: mpsc::Sender<EthBlockDataCacheMessage<B>>,
 		handler_call: F,
 	) where
-		T: Clone + codec::Encode,
-		F: FnOnce(&Box<dyn StorageOverride<B> + Send + Sync>) -> EthBlockDataCacheMessage<B>,
+		T: Clone + scale_codec::Encode,
+		F: FnOnce(&Box<dyn StorageOverride<B>>) -> EthBlockDataCacheMessage<B>,
 		F: Send + 'static,
 	{
 		// Data is cached, we respond immediately.
@@ -239,8 +235,7 @@ impl<B: BlockT> EthBlockDataCacheTask<B> {
 	) -> Option<EthereumBlock> {
 		let (response_tx, response_rx) = oneshot::channel();
 
-		let _ = self
-			.0
+		self.0
 			.send(EthBlockDataCacheMessage::RequestCurrentBlock {
 				block_hash,
 				schema,
@@ -260,8 +255,7 @@ impl<B: BlockT> EthBlockDataCacheTask<B> {
 	) -> Option<Vec<TransactionStatus>> {
 		let (response_tx, response_rx) = oneshot::channel();
 
-		let _ = self
-			.0
+		self.0
 			.send(
 				EthBlockDataCacheMessage::RequestCurrentTransactionStatuses {
 					block_hash,
@@ -280,12 +274,12 @@ pub struct EthTask<B, C, BE>(PhantomData<(B, C, BE)>);
 
 impl<B, C, BE> EthTask<B, C, BE>
 where
-	B: BlockT<Hash = H256>,
-	C: ProvideRuntimeApi<B> + StorageProvider<B, BE> + BlockchainEvents<B>,
-	C: HeaderBackend<B> + Send + Sync + 'static,
+	B: BlockT,
+	C: ProvideRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
+	C: BlockchainEvents<B> + 'static,
+	C: HeaderBackend<B> + StorageProvider<B, BE>,
 	BE: Backend<B> + 'static,
-	BE::State: StateBackend<BlakeTwo256>,
 {
 	pub async fn filter_pool_task(
 		client: Arc<C>,
@@ -311,21 +305,17 @@ where
 		fee_history_cache: FeeHistoryCache,
 		block_limit: u64,
 	) {
-		use sp_runtime::Permill;
-
 		struct TransactionHelper {
 			gas_used: u64,
 			effective_reward: u64,
 		}
 		// Calculates the cache for a single block
 		#[rustfmt::skip]
-			let fee_history_cache_item = |hash: H256, elasticity: Permill| -> (
+			let fee_history_cache_item = |hash: B::Hash| -> (
 			FeeHistoryCacheItem,
 			Option<u64>
 		) {
-			let id = BlockId::Hash(hash);
-			let schema =
-				frontier_backend_client::onchain_storage_schema::<B, C, BE>(client.as_ref(), id);
+			let schema = fc_storage::onchain_storage_schema(client.as_ref(), hash);
 			let handler = overrides
 				.schemas
 				.get(&schema)
@@ -347,32 +337,20 @@ where
 					.collect()
 			};
 
-			let block = handler.current_block(&id);
+			let block = handler.current_block(hash);
 			let mut block_number: Option<u64> = None;
-			let base_fee = if let Some(base_fee) = handler.base_fee(&id) {
-				base_fee
-			} else {
-				client.runtime_api().gas_price(&id).unwrap_or_else(|_|U256::zero())
-			};
-			let receipts = handler.current_receipts(&id);
+			let base_fee = client.runtime_api().gas_price(&BlockId::Hash(hash)).unwrap_or_default();
+			let receipts = handler.current_receipts(hash);
 			let mut result = FeeHistoryCacheItem {
-				base_fee: base_fee.as_u64(),
+				base_fee: if base_fee > U256::from(u64::MAX) { u64::MAX } else { base_fee.low_u64() },
 				gas_used_ratio: 0f64,
 				rewards: Vec::new(),
 			};
 			if let (Some(block), Some(receipts)) = (block, receipts) {
 				block_number = Some(block.header.number.as_u64());
-				// Calculate the gas used ratio.
-				// TODO this formula needs the pallet-base-fee configuration.
-				// By now we assume just the default 0.125 (elasticity multiplier 8).
 				let gas_used = block.header.gas_used.as_u64() as f64;
 				let gas_limit = block.header.gas_limit.as_u64() as f64;
-				let elasticity_multiplier: f64 = (elasticity / Permill::from_parts(1_000_000))
-					.deconstruct()
-					.into();
-				let gas_target = gas_limit / elasticity_multiplier;
-
-				result.gas_used_ratio = gas_used / (gas_target * elasticity_multiplier);
+				result.gas_used_ratio = gas_used / gas_limit;
 
 				let mut previous_cumulative_gas = U256::zero();
 				let used_gas = |current: U256, previous: &mut U256| -> u64 {
@@ -451,19 +429,6 @@ where
 
 		while let Some(notification) = notification_st.next().await {
 			if notification.is_new_best {
-				let hash = notification.hash;
-				let id = BlockId::Hash(hash);
-				let schema = frontier_backend_client::onchain_storage_schema::<B, C, BE>(
-					client.as_ref(),
-					id,
-				);
-				let handler = overrides
-					.schemas
-					.get(&schema)
-					.unwrap_or(&overrides.fallback);
-
-				let default_elasticity = Permill::from_parts(125_000);
-				let elasticity = handler.elasticity(&id).unwrap_or(default_elasticity);
 				// In case a re-org happened on import.
 				if let Some(tree_route) = notification.tree_route {
 					if let Ok(fee_history_cache) = &mut fee_history_cache.lock() {
@@ -477,13 +442,13 @@ where
 						// Insert enacted.
 						let _ = tree_route.enacted().iter().map(|hash_and_number| {
 							let (result, block_number) =
-								fee_history_cache_item(hash_and_number.hash, elasticity);
+								fee_history_cache_item(hash_and_number.hash);
 							commit_if_any(result, block_number);
 						});
 					}
 				}
 				// Cache the imported block.
-				let (result, block_number) = fee_history_cache_item(hash, elasticity);
+				let (result, block_number) = fee_history_cache_item(notification.hash);
 				commit_if_any(result, block_number);
 			}
 		}

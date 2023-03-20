@@ -20,11 +20,12 @@ use std::{marker::PhantomData, sync::Arc};
 
 use ethereum_types::H256;
 use jsonrpsee::core::RpcResult as Result;
+// Substrate
 use sp_api::{Core, ProvideRuntimeApi};
 use sp_blockchain::HeaderBackend;
 use sp_core::keccak_256;
 use sp_runtime::{generic::BlockId, traits::Block as BlockT};
-
+// Frontier
 use fc_rpc_core::{types::Bytes, Web3ApiServer};
 use fp_rpc::EthereumRuntimeRPCApi;
 
@@ -47,9 +48,10 @@ impl<B, C> Web3<B, C> {
 
 impl<B, C> Web3ApiServer for Web3<B, C>
 where
-	B: BlockT<Hash = H256> + Send + Sync + 'static,
-	C: HeaderBackend<B> + ProvideRuntimeApi<B> + Send + Sync + 'static,
+	B: BlockT,
+	C: ProvideRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
+	C: HeaderBackend<B> + 'static,
 {
 	fn client_version(&self) -> Result<String> {
 		let hash = self.client.info().best_hash;

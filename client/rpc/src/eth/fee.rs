@@ -16,32 +16,31 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use ethereum_types::{H256, U256};
+use ethereum_types::U256;
 use jsonrpsee::core::RpcResult as Result;
-
-use sc_client_api::backend::{Backend, StateBackend, StorageProvider};
-use sc_network::ExHashT;
+// Substrate
+use sc_client_api::backend::{Backend, StorageProvider};
+use sc_network_common::ExHashT;
 use sc_transaction_pool::ChainApi;
 use sp_api::ProvideRuntimeApi;
 use sp_blockchain::HeaderBackend;
 use sp_runtime::{
 	generic::BlockId,
-	traits::{BlakeTwo256, Block as BlockT, Header as HeaderT, UniqueSaturatedInto},
+	traits::{Block as BlockT, UniqueSaturatedInto},
 };
-
+// Frontier
 use fc_rpc_core::types::*;
 use fp_rpc::EthereumRuntimeRPCApi;
 
 use crate::{eth::Eth, frontier_backend_client, internal_err};
 
-impl<B, C, P, CT, BE, H: ExHashT, A: ChainApi> Eth<B, C, P, CT, BE, H, A>
+impl<B, C, P, CT, BE, H: ExHashT, A: ChainApi, EGA> Eth<B, C, P, CT, BE, H, A, EGA>
 where
-	B: BlockT<Hash = H256> + Send + Sync + 'static,
-	C: ProvideRuntimeApi<B> + StorageProvider<B, BE>,
-	C: HeaderBackend<B> + Send + Sync + 'static,
+	B: BlockT,
+	C: ProvideRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
+	C: HeaderBackend<B> + StorageProvider<B, BE> + 'static,
 	BE: Backend<B> + 'static,
-	BE::State: StateBackend<BlakeTwo256>,
 {
 	pub fn gas_price(&self) -> Result<U256> {
 		let block = BlockId::Hash(self.client.info().best_hash);
@@ -71,20 +70,8 @@ where
 			self.backend.as_ref(),
 			Some(newest_block),
 		) {
-			let header = match self.client.header(id) {
-				Ok(Some(h)) => h,
-				_ => {
-					return Err(internal_err(format!("Failed to retrieve header at {}", id)));
-				}
-			};
-			let number = match self.client.number(header.hash()) {
-				Ok(Some(n)) => n,
-				_ => {
-					return Err(internal_err(format!(
-						"Failed to retrieve block number at {}",
-						id
-					)));
-				}
+			let Ok(number) = self.client.expect_block_number_from_id(&id) else {
+				return Err(internal_err(format!("Failed to retrieve block number at {id}")));
 			};
 			// Highest and lowest block number within the requested range.
 			let highest = UniqueSaturatedInto::<u64>::unique_saturated_into(number);
@@ -143,10 +130,12 @@ where
 					response.gas_used_ratio.last(),
 					response.base_fee_per_gas.last(),
 				) {
-					let schema = frontier_backend_client::onchain_storage_schema::<B, C, BE>(
-						self.client.as_ref(),
-						id,
-					);
+					let substrate_hash =
+						self.client.expect_block_hash_from_id(&id).map_err(|_| {
+							internal_err(format!("Expect block number from id: {}", id))
+						})?;
+					let schema =
+						fc_storage::onchain_storage_schema(self.client.as_ref(), substrate_hash);
 					let handler = self
 						.overrides
 						.schemas
@@ -154,7 +143,7 @@ where
 						.unwrap_or(&self.overrides.fallback);
 					let default_elasticity = sp_runtime::Permill::from_parts(125_000);
 					let elasticity = handler
-						.elasticity(&id)
+						.elasticity(substrate_hash)
 						.unwrap_or(default_elasticity)
 						.deconstruct();
 					let elasticity = elasticity as f64 / 1_000_000f64;
@@ -204,7 +193,7 @@ where
 		if let Ok(fee_history_cache) = &self.fee_history_cache.lock() {
 			for n in lowest..highest + 1 {
 				if let Some(block) = fee_history_cache.get(&n) {
-					let reward = if let Some(r) = block.rewards.get(index as usize) {
+					let reward = if let Some(r) = block.rewards.get(index) {
 						U256::from(*r)
 					} else {
 						U256::zero()
