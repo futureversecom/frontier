@@ -106,7 +106,7 @@ pub trait HandleTxValidation<E: From<InvalidEvmTransactionError>> {
 
 	fn with_base_fee(evm_config: &CheckEvmTransaction<E>) -> Result<(), E> {
 		// Get fee data from either a legacy or typed transaction input.
-		let (gas_price, _) = Self::transaction_fee_input(&evm_config)?;
+		let (gas_price, _) = Self::transaction_fee_input(evm_config)?;
 		if evm_config.config.is_transactional || gas_price > U256::zero() {
 			// Transaction max fee is at least the current base fee.
 			if gas_price < evm_config.config.base_fee {
@@ -216,7 +216,7 @@ pub trait HandleTxValidation<E: From<InvalidEvmTransactionError>> {
 	}
 }
 
-impl<'config, E: From<InvalidEvmTransactionError>> HandleTxValidation<E> for () {}
+impl<E: From<InvalidEvmTransactionError>> HandleTxValidation<E> for () {}
 
 #[cfg(test)]
 mod tests {
