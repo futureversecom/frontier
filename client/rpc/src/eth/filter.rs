@@ -240,9 +240,9 @@ where
 				let mut ethereum_hashes: Vec<H256> = Vec::new();
 				for n in last..next {
 					let id = BlockId::Number(n.unique_saturated_into());
-					let substrate_hash = client.expect_block_hash_from_id(&id).map_err(|_| {
-						internal_err(format!("Expect block number from id: {id}"))
-					})?;
+					let substrate_hash = client
+						.expect_block_hash_from_id(&id)
+						.map_err(|_| internal_err(format!("Expect block number from id: {id}")))?;
 
 					let schema = frontier_backend_client::onchain_storage_schema::<B, C, BE>(
 						client.as_ref(),

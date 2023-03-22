@@ -108,9 +108,7 @@ where
 					#[allow(deprecated)]
 					let legacy = api.extrinsic_filter_before_version_2(&best_block, xts)
 						.map_err(|err| {
-							internal_err(format!(
-								"fetch runtime extrinsic filter failed: {err:?}"
-							))
+							internal_err(format!("fetch runtime extrinsic filter failed: {err:?}"))
 						})?;
 					legacy.into_iter().map(|tx| tx.into()).collect()
 				};
@@ -343,9 +341,7 @@ where
 							)
 						}
 						_ => {
-							return Err(internal_err(format!(
-								"Unknown receipt for request {hash}"
-							)))
+							return Err(internal_err(format!("Unknown receipt for request {hash}")))
 						}
 					}
 				} else {

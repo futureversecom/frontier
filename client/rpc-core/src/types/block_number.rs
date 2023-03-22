@@ -115,9 +115,8 @@ impl<'a> Visitor<'a> for BlockNumberVisitor {
 					"blockNumber" => {
 						let value: String = visitor.next_value()?;
 						if let Some(stripped) = value.strip_prefix("0x") {
-							let number = u64::from_str_radix(stripped, 16).map_err(|e| {
-								Error::custom(format!("Invalid block number: {e}"))
-							})?;
+							let number = u64::from_str_radix(stripped, 16)
+								.map_err(|e| Error::custom(format!("Invalid block number: {e}")))?;
 
 							block_number = Some(number);
 							break;

@@ -142,9 +142,7 @@ impl<Block: BlockT> MetaDb<Block> {
 			&tips.encode(),
 		);
 
-		self.db
-			.commit(transaction)
-			.map_err(|e| format!("{e:?}"))?;
+		self.db.commit(transaction).map_err(|e| format!("{e:?}"))?;
 
 		Ok(())
 	}
@@ -173,9 +171,7 @@ impl<Block: BlockT> MetaDb<Block> {
 			&new_cache.encode(),
 		);
 
-		self.db
-			.commit(transaction)
-			.map_err(|e| format!("{e:?}"))?;
+		self.db.commit(transaction).map_err(|e| format!("{e:?}"))?;
 
 		Ok(())
 	}
@@ -249,9 +245,7 @@ impl<Block: BlockT> MappingDb<Block> {
 			&true.encode(),
 		);
 
-		self.db
-			.commit(transaction)
-			.map_err(|e| format!("{e:?}"))?;
+		self.db.commit(transaction).map_err(|e| format!("{e:?}"))?;
 
 		Ok(())
 	}
@@ -291,9 +285,7 @@ impl<Block: BlockT> MappingDb<Block> {
 			&true.encode(),
 		);
 
-		self.db
-			.commit(transaction)
-			.map_err(|e| format!("{e:?}"))?;
+		self.db.commit(transaction).map_err(|e| format!("{e:?}"))?;
 
 		Ok(())
 	}

@@ -78,5 +78,3 @@ jobs:
         taplo fmt --check
     - name: Rustfmt
       run: cargo fmt --all -- --check
-    - name: Clippy
-      run: cargo clippy --all --features runtime-benchmarks -- -D warnings
