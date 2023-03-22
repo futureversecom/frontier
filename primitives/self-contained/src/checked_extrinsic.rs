@@ -120,7 +120,7 @@ where
 				Ok(res)
 			}
 			CheckedSignature::Unsigned => {
-				let _pre = Extra::pre_dispatch_unsigned(&self.function, info, len)?;
+				Extra::pre_dispatch_unsigned(&self.function, info, len)?;
 				U::pre_dispatch(&self.function)?;
 				let maybe_who = None;
 				let res = self.function.dispatch(Origin::from(maybe_who));

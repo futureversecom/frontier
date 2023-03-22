@@ -239,7 +239,7 @@ impl<B: BlockT> EthBlockDataCacheTask<B> {
 	) -> Option<EthereumBlock> {
 		let (response_tx, response_rx) = oneshot::channel();
 
-		let _ = self
+		self
 			.0
 			.send(EthBlockDataCacheMessage::RequestCurrentBlock {
 				block_hash,
@@ -260,7 +260,7 @@ impl<B: BlockT> EthBlockDataCacheTask<B> {
 	) -> Option<Vec<TransactionStatus>> {
 		let (response_tx, response_rx) = oneshot::channel();
 
-		let _ = self
+		self
 			.0
 			.send(
 				EthBlockDataCacheMessage::RequestCurrentTransactionStatuses {
@@ -389,13 +389,13 @@ where
 							ethereum::ReceiptV3::Legacy(d) | ethereum::ReceiptV3::EIP2930(d) | ethereum::ReceiptV3::EIP1559(d) => used_gas(d.used_gas, &mut previous_cumulative_gas),
 						},
 						effective_reward: match block.transactions.get(i) {
-							Some(&ethereum::TransactionV2::Legacy(ref t)) => {
+							Some(ethereum::TransactionV2::Legacy(t)) => {
 								t.gas_price.saturating_sub(base_fee).as_u64()
 							}
-							Some(&ethereum::TransactionV2::EIP2930(ref t)) => {
+							Some(ethereum::TransactionV2::EIP2930(t)) => {
 								t.gas_price.saturating_sub(base_fee).as_u64()
 							}
-							Some(&ethereum::TransactionV2::EIP1559(ref t)) => t
+							Some(ethereum::TransactionV2::EIP1559(t)) => t
 								.max_priority_fee_per_gas
 								.min(t.max_fee_per_gas.saturating_sub(base_fee))
 								.as_u64(),

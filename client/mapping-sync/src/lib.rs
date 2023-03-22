@@ -72,13 +72,13 @@ where
 	let has_api = client
 		.runtime_api()
 		.has_api::<dyn EthereumRuntimeRPCApi<Block>>(&id)
-		.map_err(|e| format!("{:?}", e))?;
+		.map_err(|e| format!("{e:?}"))?;
 
 	if has_api {
 		let block = client
 			.runtime_api()
 			.current_block(&id)
-			.map_err(|e| format!("{:?}", e))?;
+			.map_err(|e| format!("{e:?}"))?;
 		let block_hash = block
 			.ok_or_else(|| "Ethereum genesis block not found".to_string())?
 			.header
@@ -111,7 +111,7 @@ where
 	let mut current_syncing_tips = frontier_backend.meta().current_syncing_tips()?;
 
 	if current_syncing_tips.is_empty() {
-		let mut leaves = substrate_backend.leaves().map_err(|e| format!("{:?}", e))?;
+		let mut leaves = substrate_backend.leaves().map_err(|e| format!("{e:?}"))?;
 		if leaves.is_empty() {
 			return Ok(false);
 		}

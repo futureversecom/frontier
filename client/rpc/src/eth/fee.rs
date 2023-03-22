@@ -49,7 +49,7 @@ where
 		self.client
 			.runtime_api()
 			.gas_price(&block)
-			.map_err(|err| internal_err(format!("fetch runtime chain id failed: {:?}", err)))
+			.map_err(|err| internal_err(format!("fetch runtime chain id failed: {err:?}")))
 	}
 
 	pub fn fee_history(
@@ -74,15 +74,14 @@ where
 			let header = match self.client.header(id) {
 				Ok(Some(h)) => h,
 				_ => {
-					return Err(internal_err(format!("Failed to retrieve header at {}", id)));
+					return Err(internal_err(format!("Failed to retrieve header at {id}")));
 				}
 			};
 			let number = match self.client.number(header.hash()) {
 				Ok(Some(n)) => n,
 				_ => {
 					return Err(internal_err(format!(
-						"Failed to retrieve block number at {}",
-						id
+						"Failed to retrieve block number at {id}"
 					)));
 				}
 			};
@@ -184,8 +183,7 @@ where
 			}
 		}
 		Err(internal_err(format!(
-			"Failed to retrieve requested block {:?}.",
-			newest_block
+			"Failed to retrieve requested block {newest_block:?}."
 		)))
 	}
 
@@ -204,7 +202,7 @@ where
 		if let Ok(fee_history_cache) = &self.fee_history_cache.lock() {
 			for n in lowest..highest + 1 {
 				if let Some(block) = fee_history_cache.get(&n) {
-					let reward = if let Some(r) = block.rewards.get(index as usize) {
+					let reward = if let Some(r) = block.rewards.get(index) {
 						U256::from(*r)
 					} else {
 						U256::zero()

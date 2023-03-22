@@ -61,7 +61,7 @@ where
 		from_value(v.clone())
 			.map(VariadicValue::Single)
 			.or_else(|_| from_value(v).map(VariadicValue::Multiple))
-			.map_err(|err| D::Error::custom(format!("Invalid variadic value type: {}", err)))
+			.map_err(|err| D::Error::custom(format!("Invalid variadic value type: {err}")))
 	}
 }
 
@@ -540,7 +540,7 @@ mod tests {
 				Some(VariadicValue::Multiple(vec![Some(topic2), Some(topic3)])),
 			])),
 		};
-		let topics_input = if let Some(_) = &filter.topics {
+		let topics_input = if filter.topics.is_some() {
 			let filtered_params = FilteredParams::new(Some(filter.clone()));
 			Some(filtered_params.flat_topics)
 		} else {
@@ -573,7 +573,7 @@ mod tests {
 				Some(VariadicValue::Multiple(vec![Some(topic2), Some(topic3)])),
 			])),
 		};
-		let topics_input = if let Some(_) = &filter.topics {
+		let topics_input = if filter.topics.is_some() {
 			let filtered_params = FilteredParams::new(Some(filter.clone()));
 			Some(filtered_params.flat_topics)
 		} else {
@@ -594,7 +594,7 @@ mod tests {
 			address: None,
 			topics: Some(VariadicValue::Multiple(vec![])),
 		};
-		let topics_input = if let Some(_) = &filter.topics {
+		let topics_input = if filter.topics.is_some() {
 			let filtered_params = FilteredParams::new(Some(filter.clone()));
 			Some(filtered_params.flat_topics)
 		} else {
@@ -628,7 +628,7 @@ mod tests {
 				Some(VariadicValue::Multiple(vec![Some(topic2), Some(topic3)])),
 			])),
 		};
-		let topics_input = if let Some(_) = &filter.topics {
+		let topics_input = if filter.topics.is_some() {
 			let filtered_params = FilteredParams::new(Some(filter.clone()));
 			Some(filtered_params.flat_topics)
 		} else {
@@ -662,7 +662,7 @@ mod tests {
 				Some(VariadicValue::Multiple(vec![Some(topic2), Some(topic3)])),
 			])),
 		};
-		let topics_input = if let Some(_) = &filter.topics {
+		let topics_input = if filter.topics.is_some() {
 			let filtered_params = FilteredParams::new(Some(filter.clone()));
 			Some(filtered_params.flat_topics)
 		} else {
@@ -692,7 +692,7 @@ mod tests {
 				Some(VariadicValue::Multiple(vec![Some(topic2), Some(topic3)])),
 			])),
 		};
-		let topics_input = if let Some(_) = &filter.topics {
+		let topics_input = if filter.topics.is_some() {
 			let filtered_params = FilteredParams::new(Some(filter.clone()));
 			Some(filtered_params.flat_topics)
 		} else {
@@ -722,7 +722,7 @@ mod tests {
 				Some(VariadicValue::Multiple(vec![Some(topic2), Some(topic3)])),
 			])),
 		};
-		let topics_input = if let Some(_) = &filter.topics {
+		let topics_input = if filter.topics.is_some() {
 			let filtered_params = FilteredParams::new(Some(filter.clone()));
 			Some(filtered_params.flat_topics)
 		} else {

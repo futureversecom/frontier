@@ -138,7 +138,7 @@ impl SubscriptionResult {
 			};
 			let mut transaction_log_index: u32 = 0;
 			let transaction_hash: Option<H256> = if receipt_logs.len() > 0 {
-				Some(block.transactions[receipt_index as usize].hash())
+				Some(block.transactions[receipt_index].hash())
 			} else {
 				None
 			};

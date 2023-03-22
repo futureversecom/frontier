@@ -266,7 +266,7 @@ where
 		config: &evm::Config,
 	) -> Result<CallInfo, RunnerError<Self::Error>> {
 		if validate {
-			let _ = Self::validate(
+			Self::validate(
 				source,
 				Some(target),
 				input.clone(),
@@ -308,7 +308,7 @@ where
 		config: &evm::Config,
 	) -> Result<CreateInfo, RunnerError<Self::Error>> {
 		if validate {
-			let _ = Self::validate(
+			Self::validate(
 				source,
 				None,
 				init.clone(),
@@ -356,7 +356,7 @@ where
 		config: &evm::Config,
 	) -> Result<CreateInfo, RunnerError<Self::Error>> {
 		if validate {
-			let _ = Self::validate(
+			Self::validate(
 				source,
 				None,
 				init.clone(),
@@ -571,7 +571,7 @@ impl<'vicinity, 'config, T: Config> BackendT for SubstrateStackState<'vicinity, 
 	}
 
 	fn code(&self, address: H160) -> Vec<u8> {
-		<AccountCodes<T>>::get(&address)
+		<AccountCodes<T>>::get(address)
 	}
 
 	fn storage(&self, address: H160, index: H256) -> H256 {

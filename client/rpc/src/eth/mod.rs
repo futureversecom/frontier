@@ -485,7 +485,7 @@ where
 	let header = client.header(best).unwrap().unwrap();
 	let parent_hash = BlockId::Hash(*header.parent_hash());
 	api.initialize_block(&parent_hash, &header)
-		.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
+		.map_err(|e| internal_err(format!("Runtime api access error: {e:?}")))?;
 	// Apply the ready queue to the best block's state.
 	for xt in xts {
 		let _ = api.apply_extrinsic(&best, xt);

@@ -127,7 +127,7 @@ impl<Block: BlockT> MetaDb<Block> {
 			crate::static_keys::CURRENT_SYNCING_TIPS,
 		) {
 			Some(raw) => {
-				Ok(Vec::<Block::Hash>::decode(&mut &raw[..]).map_err(|e| format!("{:?}", e))?)
+				Ok(Vec::<Block::Hash>::decode(&mut &raw[..]).map_err(|e| format!("{e:?}"))?)
 			}
 			None => Ok(Vec::new()),
 		}
@@ -144,7 +144,7 @@ impl<Block: BlockT> MetaDb<Block> {
 
 		self.db
 			.commit(transaction)
-			.map_err(|e| format!("{:?}", e))?;
+			.map_err(|e| format!("{e:?}"))?;
 
 		Ok(())
 	}
@@ -155,7 +155,7 @@ impl<Block: BlockT> MetaDb<Block> {
 			.get(crate::columns::META, &PALLET_ETHEREUM_SCHEMA_CACHE.encode())
 		{
 			Some(raw) => Ok(Some(
-				Decode::decode(&mut &raw[..]).map_err(|e| format!("{:?}", e))?,
+				Decode::decode(&mut &raw[..]).map_err(|e| format!("{e:?}"))?,
 			)),
 			None => Ok(None),
 		}
@@ -175,7 +175,7 @@ impl<Block: BlockT> MetaDb<Block> {
 
 		self.db
 			.commit(transaction)
-			.map_err(|e| format!("{:?}", e))?;
+			.map_err(|e| format!("{e:?}"))?;
 
 		Ok(())
 	}
@@ -207,7 +207,7 @@ impl<Block: BlockT> MappingDb<Block> {
 			.db
 			.get(crate::columns::SYNCED_MAPPING, &block_hash.encode())
 		{
-			Some(raw) => Ok(bool::decode(&mut &raw[..]).map_err(|e| format!("{:?}", e))?),
+			Some(raw) => Ok(bool::decode(&mut &raw[..]).map_err(|e| format!("{e:?}"))?),
 			None => Ok(false),
 		}
 	}
@@ -218,7 +218,7 @@ impl<Block: BlockT> MappingDb<Block> {
 			.get(crate::columns::BLOCK_MAPPING, &ethereum_block_hash.encode())
 		{
 			Some(raw) => Ok(Some(
-				Block::Hash::decode(&mut &raw[..]).map_err(|e| format!("{:?}", e))?,
+				Block::Hash::decode(&mut &raw[..]).map_err(|e| format!("{e:?}"))?,
 			)),
 			None => Ok(None),
 		}
@@ -233,7 +233,7 @@ impl<Block: BlockT> MappingDb<Block> {
 			&ethereum_transaction_hash.encode(),
 		) {
 			Some(raw) => Ok(Vec::<TransactionMetadata<Block>>::decode(&mut &raw[..])
-				.map_err(|e| format!("{:?}", e))?),
+				.map_err(|e| format!("{e:?}"))?),
 			None => Ok(Vec::new()),
 		}
 	}
@@ -251,7 +251,7 @@ impl<Block: BlockT> MappingDb<Block> {
 
 		self.db
 			.commit(transaction)
-			.map_err(|e| format!("{:?}", e))?;
+			.map_err(|e| format!("{e:?}"))?;
 
 		Ok(())
 	}
@@ -293,7 +293,7 @@ impl<Block: BlockT> MappingDb<Block> {
 
 		self.db
 			.commit(transaction)
-			.map_err(|e| format!("{:?}", e))?;
+			.map_err(|e| format!("{e:?}"))?;
 
 		Ok(())
 	}

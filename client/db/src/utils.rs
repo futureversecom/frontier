@@ -46,7 +46,7 @@ fn open_kvdb_rocksdb(path: &Path, create: bool) -> Result<Arc<dyn Database<DbHas
 		.to_str()
 		.ok_or_else(|| "Invalid database path".to_string())?;
 
-	let db = kvdb_rocksdb::Database::open(&db_config, &path).map_err(|err| format!("{}", err))?;
+	let db = kvdb_rocksdb::Database::open(&db_config, path).map_err(|err| format!("{err}"))?;
 	return Ok(sp_database::as_database(db));
 }
 
@@ -58,7 +58,7 @@ fn open_kvdb_rocksdb(_path: &Path, _create: bool) -> Result<Arc<dyn Database<DbH
 #[cfg(feature = "parity-db")]
 fn open_parity_db(path: &Path) -> Result<Arc<dyn Database<DbHash>>, String> {
 	let config = parity_db::Options::with_columns(path, crate::columns::NUM_COLUMNS as u8);
-	let db = parity_db::Db::open_or_create(&config).map_err(|err| format!("{}", err))?;
+	let db = parity_db::Db::open_or_create(&config).map_err(|err| format!("{err}"))?;
 	Ok(Arc::new(crate::parity_db_adapter::DbAdapter(db)))
 }
 

@@ -125,12 +125,12 @@ where
 
 		let block = if api_version > 1 {
 			api.current_block(&id)
-				.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?
+				.map_err(|err| internal_err(format!("runtime error: {err:?}")))?
 		} else {
 			#[allow(deprecated)]
 			let legacy_block = api
 				.current_block_before_version_2(&id)
-				.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?;
+				.map_err(|err| internal_err(format!("runtime error: {err:?}")))?;
 			legacy_block.map(|block| block.into())
 		};
 
@@ -171,8 +171,8 @@ where
 						nonce,
 						false,
 					)
-					.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?
-					.map_err(|err| internal_err(format!("execution fatal: {:?}", err)))?;
+					.map_err(|err| internal_err(format!("runtime error: {err:?}")))?
+					.map_err(|err| internal_err(format!("execution fatal: {err:?}")))?;
 
 					error_on_execution_failure(&info.exit_reason, &info.value)?;
 					Ok(Bytes(info.value))
@@ -191,8 +191,8 @@ where
 						nonce,
 						false,
 					)
-					.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?
-					.map_err(|err| internal_err(format!("execution fatal: {:?}", err)))?;
+					.map_err(|err| internal_err(format!("runtime error: {err:?}")))?
+					.map_err(|err| internal_err(format!("execution fatal: {err:?}")))?;
 
 					error_on_execution_failure(&info.exit_reason, &info.value)?;
 					Ok(Bytes(info.value))
@@ -218,8 +218,8 @@ where
 									.collect(),
 							),
 						)
-						.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?
-						.map_err(|err| internal_err(format!("execution fatal: {:?}", err)))?;
+						.map_err(|err| internal_err(format!("runtime error: {err:?}")))?
+						.map_err(|err| internal_err(format!("execution fatal: {err:?}")))?;
 
 					error_on_execution_failure(&info.exit_reason, &info.value)?;
 					Ok(Bytes(info.value))
@@ -241,14 +241,14 @@ where
 						nonce,
 						false,
 					)
-					.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?
-					.map_err(|err| internal_err(format!("execution fatal: {:?}", err)))?;
+					.map_err(|err| internal_err(format!("runtime error: {err:?}")))?
+					.map_err(|err| internal_err(format!("execution fatal: {err:?}")))?;
 
 					error_on_execution_failure(&info.exit_reason, &[])?;
 
 					let code = api
 						.account_code_at(&id, info.value)
-						.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?;
+						.map_err(|err| internal_err(format!("runtime error: {err:?}")))?;
 					Ok(Bytes(code))
 				} else if api_version >= 2 && api_version < 4 {
 					// Post-london
@@ -264,14 +264,14 @@ where
 						nonce,
 						false,
 					)
-					.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?
-					.map_err(|err| internal_err(format!("execution fatal: {:?}", err)))?;
+					.map_err(|err| internal_err(format!("runtime error: {err:?}")))?
+					.map_err(|err| internal_err(format!("execution fatal: {err:?}")))?;
 
 					error_on_execution_failure(&info.exit_reason, &[])?;
 
 					let code = api
 						.account_code_at(&id, info.value)
-						.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?;
+						.map_err(|err| internal_err(format!("runtime error: {err:?}")))?;
 					Ok(Bytes(code))
 				} else if api_version == 4 {
 					// Post-london + access list support
@@ -294,14 +294,14 @@ where
 									.collect(),
 							),
 						)
-						.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?
-						.map_err(|err| internal_err(format!("execution fatal: {:?}", err)))?;
+						.map_err(|err| internal_err(format!("runtime error: {err:?}")))?
+						.map_err(|err| internal_err(format!("execution fatal: {err:?}")))?;
 
 					error_on_execution_failure(&info.exit_reason, &[])?;
 
 					let code = api
 						.account_code_at(&id, info.value)
-						.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?;
+						.map_err(|err| internal_err(format!("runtime error: {err:?}")))?;
 					Ok(Bytes(code))
 				} else {
 					Err(internal_err("failed to retrieve Runtime Api version"))
@@ -333,7 +333,7 @@ where
 				let to_code = client
 					.runtime_api()
 					.account_code_at(&BlockId::Hash(best_hash), to)
-					.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?;
+					.map_err(|err| internal_err(format!("runtime error: {err:?}")))?;
 				if to_code.is_empty() {
 					return Ok(MIN_GAS_PER_TX);
 				}
@@ -389,7 +389,7 @@ where
 			if gas_price > U256::zero() {
 				let balance = api
 					.account_basic(&BlockId::Hash(best_hash), from)
-					.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?
+					.map_err(|err| internal_err(format!("runtime error: {err:?}")))?
 					.balance;
 				let mut available = balance;
 				if let Some(value) = request.value {
@@ -466,8 +466,8 @@ where
 								nonce,
 								estimate_mode,
 							)
-							.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?
-							.map_err(|err| internal_err(format!("execution fatal: {:?}", err)))?
+							.map_err(|err| internal_err(format!("runtime error: {err:?}")))?
+							.map_err(|err| internal_err(format!("execution fatal: {err:?}")))?
 						} else if api_version < 4 {
 							// Post-london
 							#[allow(deprecated)]
@@ -483,8 +483,8 @@ where
 								nonce,
 								estimate_mode,
 							)
-							.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?
-							.map_err(|err| internal_err(format!("execution fatal: {:?}", err)))?
+							.map_err(|err| internal_err(format!("runtime error: {err:?}")))?
+							.map_err(|err| internal_err(format!("execution fatal: {err:?}")))?
 						} else {
 							// Post-london + access list support
 							let access_list = access_list.unwrap_or_default();
@@ -506,8 +506,8 @@ where
 										.collect(),
 								),
 							)
-							.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?
-							.map_err(|err| internal_err(format!("execution fatal: {:?}", err)))?
+							.map_err(|err| internal_err(format!("runtime error: {err:?}")))?
+							.map_err(|err| internal_err(format!("execution fatal: {err:?}")))?
 						};
 
 						(info.exit_reason, info.value, info.used_gas)
@@ -526,8 +526,8 @@ where
 								nonce,
 								estimate_mode,
 							)
-							.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?
-							.map_err(|err| internal_err(format!("execution fatal: {:?}", err)))?
+							.map_err(|err| internal_err(format!("runtime error: {err:?}")))?
+							.map_err(|err| internal_err(format!("execution fatal: {err:?}")))?
 						} else if api_version < 4 {
 							// Post-london
 							#[allow(deprecated)]
@@ -542,8 +542,8 @@ where
 								nonce,
 								estimate_mode,
 							)
-							.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?
-							.map_err(|err| internal_err(format!("execution fatal: {:?}", err)))?
+							.map_err(|err| internal_err(format!("runtime error: {err:?}")))?
+							.map_err(|err| internal_err(format!("execution fatal: {err:?}")))?
 						} else {
 							// Post-london + access list support
 							let access_list = access_list.unwrap_or_default();
@@ -564,8 +564,8 @@ where
 										.collect(),
 								),
 							)
-							.map_err(|err| internal_err(format!("runtime error: {:?}", err)))?
-							.map_err(|err| internal_err(format!("execution fatal: {:?}", err)))?
+							.map_err(|err| internal_err(format!("runtime error: {err:?}")))?
+							.map_err(|err| internal_err(format!("execution fatal: {err:?}")))?
 						};
 
 						(info.exit_reason, Vec::new(), info.used_gas)
@@ -605,8 +605,7 @@ where
 			ExitReason::Succeed(_) => (),
 			ExitReason::Error(ExitError::OutOfGas) => {
 				return Err(internal_err(format!(
-					"gas required exceeds allowance {}",
-					cap
+					"gas required exceeds allowance {cap}"
 				)))
 			}
 			// If the transaction reverts, there are two possible cases,
@@ -631,8 +630,7 @@ where
 					match exit_reason {
 						ExitReason::Succeed(_) => {
 							return Err(internal_err(format!(
-								"gas required exceeds allowance {}",
-								cap
+								"gas required exceeds allowance {cap}"
 							)))
 						}
 						// The execution has been done with block gas limit, so it is not a lack of gas from the user.
@@ -706,7 +704,7 @@ pub fn error_on_execution_failure(reason: &ExitReason, data: &[u8]) -> Result<()
 				return Err(internal_err("out of gas"));
 			}
 			Err(crate::internal_err_with_data(
-				format!("evm error: {:?}", e),
+				format!("evm error: {e:?}"),
 				&[],
 			))
 		}
@@ -725,14 +723,14 @@ pub fn error_on_execution_failure(reason: &ExitReason, data: &[u8]) -> Result<()
 				if data.len() >= message_end {
 					let body: &[u8] = &data[MESSAGE_START..message_end];
 					if let Ok(reason) = std::str::from_utf8(body) {
-						message = format!("{} {}", message, reason);
+						message = format!("{message} {reason}");
 					}
 				}
 			}
 			Err(crate::internal_err_with_data(message, data))
 		}
 		ExitReason::Fatal(e) => Err(crate::internal_err_with_data(
-			format!("evm fatal: {:?}", e),
+			format!("evm fatal: {e:?}"),
 			&[],
 		)),
 	}

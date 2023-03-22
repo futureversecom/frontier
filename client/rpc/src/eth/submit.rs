@@ -214,7 +214,7 @@ where
 		if slice.is_empty() {
 			return Err(internal_err("transaction data is empty"));
 		}
-		let first = slice.get(0).unwrap();
+		let first = slice.first().unwrap();
 		let transaction = if first > &0x7f {
 			// Legacy transaction. Decode and wrap in envelope.
 			match rlp::decode::<ethereum::TransactionV0>(slice) {

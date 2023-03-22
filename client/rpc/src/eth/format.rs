@@ -43,11 +43,11 @@ impl Geth {
 					// VError::InvalidSignature => "invalid sender".into(),
 					a if a == VError::GasLimitTooLow as u8 => "intrinsic gas too low".into(),
 					a if a == VError::GasLimitTooHigh as u8 => "exceeds block gas limit".into(),
-					_ => format!("submit transaction to pool failed: {:?}", outer),
+					_ => format!("submit transaction to pool failed: {outer:?}"),
 				},
-				_ => format!("submit transaction to pool failed: {:?}", outer),
+				_ => format!("submit transaction to pool failed: {outer:?}"),
 			},
-			err => format!("submit transaction to pool failed: {:?}", err),
+			err => format!("submit transaction to pool failed: {err:?}"),
 		}
 	}
 }

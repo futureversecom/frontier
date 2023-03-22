@@ -118,7 +118,7 @@ mod tests {
 		let s2 = Scalar::from(333u64);
 		let p2 = &constants::RISTRETTO_BASEPOINT_POINT * &s2;
 
-		let vec = vec![p1.clone(), p2.clone()];
+		let vec = vec![p1, p2];
 		let mut input = vec![];
 		input.extend_from_slice(&p1.compress().to_bytes());
 		input.extend_from_slice(&p2.compress().to_bytes());
@@ -132,7 +132,7 @@ mod tests {
 				Ok(())
 			}
 			Err(e) => {
-				panic!("Test not expected to fail: {:?}", e);
+				panic!("Test not expected to fail: {e:?}");
 			}
 		}
 	}
@@ -150,7 +150,7 @@ mod tests {
 				Ok(())
 			}
 			Err(e) => {
-				panic!("Test not expected to fail: {:?}", e);
+				panic!("Test not expected to fail: {e:?}");
 			}
 		}
 	}
@@ -175,7 +175,7 @@ mod tests {
 				Ok(())
 			}
 			Err(e) => {
-				panic!("Test not expected to fail: {:?}", e);
+				panic!("Test not expected to fail: {e:?}");
 			}
 		}
 	}

@@ -224,7 +224,7 @@ where
 					_ => FuturePath::Error(internal_err("Method not available.")),
 				}
 			} else {
-				FuturePath::Error(internal_err(format!("Filter id {:?} does not exist.", key)))
+				FuturePath::Error(internal_err(format!("Filter id {key:?} does not exist.")))
 			}
 		} else {
 			FuturePath::Error(internal_err("Filter pool is not available."))
@@ -241,7 +241,7 @@ where
 				for n in last..next {
 					let id = BlockId::Number(n.unique_saturated_into());
 					let substrate_hash = client.expect_block_hash_from_id(&id).map_err(|_| {
-						internal_err(format!("Expect block number from id: {}", id))
+						internal_err(format!("Expect block number from id: {id}"))
 					})?;
 
 					let schema = frontier_backend_client::onchain_storage_schema::<B, C, BE>(
@@ -291,13 +291,12 @@ where
 
 			let pool_item = pool
 				.get(&key)
-				.ok_or_else(|| internal_err(format!("Filter id {:?} does not exist.", key)))?;
+				.ok_or_else(|| internal_err(format!("Filter id {key:?} does not exist.")))?;
 
 			match &pool_item.filter_type {
 				FilterType::Log(filter) => Ok(filter.clone()),
 				_ => Err(internal_err(format!(
-					"Filter id {:?} is not a Log filter.",
-					key
+					"Filter id {key:?} is not a Log filter."
 				))),
 			}
 		})();
@@ -347,7 +346,7 @@ where
 			if locked.remove(&key).is_some() {
 				Ok(true)
 			} else {
-				Err(internal_err(format!("Filter id {:?} does not exist.", key)))
+				Err(internal_err(format!("Filter id {key:?} does not exist.")))
 			}
 		} else {
 			Err(internal_err("Filter pool is not available."))
@@ -364,14 +363,14 @@ where
 		let mut ret: Vec<Log> = Vec::new();
 		if let Some(hash) = filter.block_hash {
 			let id = match frontier_backend_client::load_hash::<B>(backend.as_ref(), hash)
-				.map_err(|err| internal_err(format!("{:?}", err)))?
+				.map_err(|err| internal_err(format!("{err:?}")))?
 			{
 				Some(hash) => hash,
 				_ => return Ok(Vec::new()),
 			};
 			let substrate_hash = client
 				.expect_block_hash_from_id(&id)
-				.map_err(|_| internal_err(format!("Expect block number from id: {}", id)))?;
+				.map_err(|_| internal_err(format!("Expect block number from id: {id}")))?;
 
 			let schema =
 				frontier_backend_client::onchain_storage_schema::<B, C, BE>(client.as_ref(), id);
@@ -453,7 +452,7 @@ where
 		let id = BlockId::Number(current_number);
 		let substrate_hash = client
 			.expect_block_hash_from_id(&id)
-			.map_err(|_| internal_err(format!("Expect block number from id: {}", id)))?;
+			.map_err(|_| internal_err(format!("Expect block number from id: {id}")))?;
 
 		let schema = frontier_backend_client::onchain_storage_schema::<B, C, BE>(client, id);
 
@@ -474,8 +473,7 @@ where
 		// Check for restrictions
 		if ret.len() as u32 > max_past_logs {
 			return Err(internal_err(format!(
-				"query returned more than {} results",
-				max_past_logs
+				"query returned more than {max_past_logs} results"
 			)));
 		}
 		if begin_request.elapsed() > max_duration {
