@@ -169,6 +169,7 @@ impl pallet_evm::Config for Test {
 	type OnChargeTransaction = ();
 	type OnCreate = ();
 	type FindAuthor = FindAuthorTruncated;
+	type HandleTxValidation = ();
 }
 
 parameter_types! {
@@ -179,6 +180,7 @@ impl Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type StateRoot = IntermediateStateRoot<Self>;
 	type PostLogContent = PostBlockAndTxnHashes;
+	type HandleTxValidation = ();
 }
 
 impl fp_self_contained::SelfContainedCall for RuntimeCall {

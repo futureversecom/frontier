@@ -30,6 +30,10 @@ mod mock;
 #[cfg(all(feature = "std", test))]
 mod tests;
 
+pub use ethereum::{
+	AccessListItem, BlockV2 as Block, LegacyTransactionMessage, Log, ReceiptV3 as Receipt,
+	TransactionAction, TransactionV2 as Transaction,
+};
 use ethereum_types::{Bloom, BloomInput, H160, H256, H64, U256};
 use evm::ExitReason;
 use fp_consensus::{PostLog, PreLog, FRONTIER_ENGINE_ID};
@@ -37,8 +41,10 @@ use fp_ethereum::{
 	TransactionData, TransactionValidationError, ValidatedTransaction as ValidatedTransactionT,
 };
 use fp_evm::{
-	CallOrCreateInfo, CheckEvmTransaction, CheckEvmTransactionConfig, InvalidEvmTransactionError,
+	CallOrCreateInfo, CheckEvmTransaction, CheckEvmTransactionConfig, HandleTxValidation,
+	InvalidEvmTransactionError,
 };
+pub use fp_rpc::TransactionStatus;
 use fp_storage::{EthereumStorageSchema, PALLET_ETHEREUM_SCHEMA};
 use frame_support::{
 	codec::{Decode, Encode, MaxEncodedLen},
@@ -58,12 +64,6 @@ use sp_runtime::{
 	DispatchErrorWithPostInfo, RuntimeDebug,
 };
 use sp_std::{marker::PhantomData, prelude::*};
-
-pub use ethereum::{
-	AccessListItem, BlockV2 as Block, LegacyTransactionMessage, Log, ReceiptV3 as Receipt,
-	TransactionAction, TransactionV2 as Transaction,
-};
-pub use fp_rpc::TransactionStatus;
 
 #[derive(Clone, Eq, PartialEq, RuntimeDebug)]
 #[derive(Encode, Decode, MaxEncodedLen, TypeInfo)]
@@ -196,6 +196,24 @@ pub mod pallet {
 		type StateRoot: Get<H256>;
 		/// What's included in the PostLog.
 		type PostLogContent: Get<PostLogContent>;
+
+		type HandleTxValidation: HandleTxValidation<InvalidTransactionWrapper>;
+	}
+
+	impl<T: Config> From<InvalidEvmTransactionError> for Error<T> {
+		fn from(err: InvalidEvmTransactionError) -> Self {
+			match err {
+				InvalidEvmTransactionError::GasLimitTooLow => Error::<T>::GasLimitTooLow,
+				InvalidEvmTransactionError::GasLimitTooHigh => Error::<T>::GasLimitTooHigh,
+				InvalidEvmTransactionError::GasPriceTooLow => Error::<T>::GasPriceTooLow,
+				InvalidEvmTransactionError::PriorityFeeTooHigh => Error::<T>::GasPriceTooLow,
+				InvalidEvmTransactionError::BalanceTooLow => Error::<T>::BalanceLow,
+				InvalidEvmTransactionError::TxNonceTooLow => Error::<T>::InvalidNonce,
+				InvalidEvmTransactionError::TxNonceTooHigh => Error::<T>::InvalidNonce,
+				InvalidEvmTransactionError::InvalidPaymentInput => Error::<T>::GasPriceTooLow,
+				_ => Error::<T>::Undefined,
+			}
+		}
 	}
 
 	#[pallet::hooks]
@@ -311,6 +329,13 @@ pub mod pallet {
 		InvalidSignature,
 		/// Pre-log is present, therefore transact is not allowed.
 		PreLogExists,
+		// Invalid EVM Transaction compatibility errors
+		GasLimitTooLow,
+		GasLimitTooHigh,
+		GasPriceTooLow,
+		BalanceLow,
+		InvalidNonce,
+		Undefined,
 	}
 
 	/// Current building block's transactions and receipts.
@@ -481,7 +506,7 @@ impl<T: Config> Pallet<T> {
 		let (base_fee, _) = T::FeeCalculator::min_gas_price();
 		let (who, _) = pallet_evm::Pallet::<T>::account_basic(&origin);
 
-		let _ = CheckEvmTransaction::<InvalidTransactionWrapper>::new(
+		let evm_config = CheckEvmTransaction::<InvalidTransactionWrapper>::new(
 			CheckEvmTransactionConfig {
 				evm_config: T::config(),
 				block_gas_limit: T::BlockGasLimit::get(),
@@ -490,12 +515,15 @@ impl<T: Config> Pallet<T> {
 				is_transactional: true,
 			},
 			transaction_data.clone().into(),
-		)
-		.validate_in_pool_for(&who)
-		.and_then(|v| v.with_chain_id())
-		.and_then(|v| v.with_base_fee())
-		.and_then(|v| v.with_balance_for(&who))
-		.map_err(|e| e.0)?;
+		);
+
+		<T as pallet::Config>::HandleTxValidation::validate_in_pool_for(&evm_config, &who)
+			.and_then(|_| <T as pallet::Config>::HandleTxValidation::with_chain_id(&evm_config))
+			.and_then(|_| <T as pallet::Config>::HandleTxValidation::with_base_fee(&evm_config))
+			.and_then(|_| {
+				<T as pallet::Config>::HandleTxValidation::with_balance_for(&evm_config, &who)
+			})
+			.map_err(|e| e.0)?;
 
 		let priority = match (
 			transaction_data.gas_price,
@@ -790,7 +818,7 @@ impl<T: Config> Pallet<T> {
 		let (base_fee, _) = T::FeeCalculator::min_gas_price();
 		let (who, _) = pallet_evm::Pallet::<T>::account_basic(&origin);
 
-		let _ = CheckEvmTransaction::<InvalidTransactionWrapper>::new(
+		let evm_config = CheckEvmTransaction::<InvalidTransactionWrapper>::new(
 			CheckEvmTransactionConfig {
 				evm_config: T::config(),
 				block_gas_limit: T::BlockGasLimit::get(),
@@ -799,13 +827,15 @@ impl<T: Config> Pallet<T> {
 				is_transactional: true,
 			},
 			transaction_data.into(),
-		)
-		.validate_in_block_for(&who)
-		.and_then(|v| v.with_chain_id())
-		.and_then(|v| v.with_base_fee())
-		.and_then(|v| v.with_balance_for(&who))
-		.map_err(|e| TransactionValidityError::Invalid(e.0))?;
+		);
 
+		<T as pallet::Config>::HandleTxValidation::validate_in_block_for(&evm_config, &who)
+			.and_then(|_| <T as pallet::Config>::HandleTxValidation::with_chain_id(&evm_config))
+			.and_then(|_| <T as pallet::Config>::HandleTxValidation::with_base_fee(&evm_config))
+			.and_then(|_| {
+				<T as pallet::Config>::HandleTxValidation::with_balance_for(&evm_config, &who)
+			})
+			.map_err(|e| TransactionValidityError::Invalid(e.0))?;
 		Ok(())
 	}
 

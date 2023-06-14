@@ -345,6 +345,7 @@ impl pallet_evm::Config for Runtime {
 	type OnChargeTransaction = ();
 	type OnCreate = ();
 	type FindAuthor = FindAuthorTruncated<Aura>;
+	type HandleTxValidation = ();
 }
 
 parameter_types! {
@@ -355,6 +356,7 @@ impl pallet_ethereum::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self>;
 	type PostLogContent = PostBlockAndTxnHashes;
+	type HandleTxValidation = ();
 }
 
 parameter_types! {
