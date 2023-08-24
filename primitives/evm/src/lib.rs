@@ -37,7 +37,7 @@ pub use self::precompile::{
 };
 
 pub use self::validation::{
-	CheckEvmTransaction, CheckEvmTransactionConfig, CheckEvmTransactionInput,
+	CheckEvmTransaction, CheckEvmTransactionConfig, CheckEvmTransactionInput, HandleTxValidation,
 	InvalidEvmTransactionError,
 };
 

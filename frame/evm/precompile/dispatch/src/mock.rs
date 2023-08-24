@@ -158,6 +158,7 @@ impl pallet_evm::Config for Test {
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type OnChargeTransaction = ();
 	type FindAuthor = FindAuthorTruncated;
+	type HandleTxValidation = ();
 }
 
 pub(crate) struct MockHandle {

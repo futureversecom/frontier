@@ -27,7 +27,7 @@ use evm::{
 	executor::stack::{Accessed, StackExecutor, StackState as StackStateT, StackSubstateMetadata},
 	ExitError, ExitReason, Transfer,
 };
-use fp_evm::{CallInfo, CreateInfo, ExecutionInfo, Log, Vicinity};
+use fp_evm::{CallInfo, CreateInfo, ExecutionInfo, HandleTxValidation, Log, Vicinity};
 use frame_support::traits::{Currency, ExistenceRequirement, Get};
 use sp_core::{H160, H256, U256};
 use sp_runtime::traits::UniqueSaturatedInto;
@@ -292,7 +292,7 @@ where
 		let (source_account, inner_weight) = Pallet::<T>::account_basic(&source);
 		weight = weight.saturating_add(inner_weight);
 
-		let _ = fp_evm::CheckEvmTransaction::<Self::Error>::new(
+		let evm_config = fp_evm::CheckEvmTransaction::<Self::Error>::new(
 			fp_evm::CheckEvmTransactionConfig {
 				evm_config,
 				block_gas_limit: T::BlockGasLimit::get(),
@@ -312,11 +312,13 @@ where
 				value,
 				access_list,
 			},
-		)
-		.validate_in_block_for(&source_account)
-		.and_then(|v| v.with_base_fee())
-		.and_then(|v| v.with_balance_for(&source_account))
-		.map_err(|error| RunnerError { error, weight })?;
+		);
+
+		T::HandleTxValidation::validate_in_block_for(&evm_config, &source_account)
+			.and_then(|_| T::HandleTxValidation::with_base_fee(&evm_config))
+			.and_then(|_| T::HandleTxValidation::with_balance_for(&evm_config, &source_account))
+			.map_err(|error| RunnerError { error, weight })?;
+
 		Ok(())
 	}
 

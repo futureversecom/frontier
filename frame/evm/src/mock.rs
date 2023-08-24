@@ -146,4 +146,5 @@ impl crate::Config for Test {
 	type Runner = crate::runner::stack::Runner<Self>;
 	type OnChargeTransaction = ();
 	type FindAuthor = FindAuthorTruncated;
+	type HandleTxValidation = ();
 }

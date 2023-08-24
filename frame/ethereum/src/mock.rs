@@ -169,11 +169,13 @@ impl pallet_evm::Config for Test {
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type OnChargeTransaction = ();
 	type FindAuthor = FindAuthorTruncated;
+	type HandleTxValidation = ();
 }
 
 impl Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type StateRoot = IntermediateStateRoot<Self>;
+	type HandleTxValidation = ();
 }
 
 impl fp_self_contained::SelfContainedCall for RuntimeCall {
