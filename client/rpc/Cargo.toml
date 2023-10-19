@@ -29,22 +29,22 @@ libsecp256k1 = "0.7"
 rlp = "0.5"
 
 # Substrate
-prometheus-endpoint = { package = "substrate-prometheus-endpoint", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30" }
-sc-client-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30" }
-sc-network = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30" }
-sc-network-common = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30" }
-sc-rpc = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30" }
-sc-service = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30" }
-sc-transaction-pool = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30" }
-sc-transaction-pool-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30" }
-sp-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30" }
-sp-block-builder = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30" }
-sp-blockchain = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30" }
-sp-consensus = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30" }
-sp-core = { version = "6.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30" }
-sp-io = { version = "6.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30" }
-sp-runtime = { version = "6.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30" }
-sp-storage = { version = "6.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30" }
+prometheus-endpoint = { package = "substrate-prometheus-endpoint", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30-warped" }
+sc-client-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30-warped" }
+sc-network = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30-warped" }
+sc-network-common = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30-warped" }
+sc-rpc = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30-warped" }
+sc-service = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30-warped" }
+sc-transaction-pool = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30-warped" }
+sc-transaction-pool-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30-warped" }
+sp-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30-warped" }
+sp-block-builder = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30-warped" }
+sp-blockchain = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30-warped" }
+sp-consensus = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30-warped" }
+sp-core = { version = "6.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30-warped" }
+sp-io = { version = "6.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30-warped" }
+sp-runtime = { version = "6.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30-warped" }
+sp-storage = { version = "6.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30-warped" }
 
 # Frontier
 fc-db = { version = "2.0.0-dev", path = "../db" }
@@ -57,11 +57,11 @@ fp-storage = { version = "2.0.0-dev", path = "../../primitives/storage" }
 [dev-dependencies]
 tempfile = "3.3.0"
 # Substrate
-beefy-primitives = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30" }
-sc-block-builder = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30" }
-sc-client-db = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30" }
-sp-consensus = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30" }
-substrate-test-runtime-client = { version = "2.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30" }
+beefy-primitives = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30-warped" }
+sc-block-builder = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30-warped" }
+sc-client-db = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30-warped" }
+sp-consensus = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30-warped" }
+substrate-test-runtime-client = { version = "2.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v0.9.30-warped" }
 
 [features]
 rpc_binary_search_estimate = []
