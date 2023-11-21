@@ -73,5 +73,7 @@ pub trait SelfContainedCall: Dispatchable {
 	fn apply_self_contained(
 		self,
 		info: Self::SignedInfo,
+		dispatch_info: &DispatchInfoOf<Self>,
+		len: usize,
 	) -> Option<sp_runtime::DispatchResultWithInfo<PostDispatchInfoOf<Self>>>;
 }
