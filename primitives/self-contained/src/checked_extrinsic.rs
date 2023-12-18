@@ -144,9 +144,12 @@ where
 					.ok_or(TransactionValidityError::Invalid(
 						InvalidTransaction::BadProof,
 					))??;
-				let res = self.function.apply_self_contained(signed_info).ok_or(
-					TransactionValidityError::Invalid(InvalidTransaction::BadProof),
-				)?;
+				let res = self
+					.function
+					.apply_self_contained(signed_info, info, len)
+					.ok_or(TransactionValidityError::Invalid(
+						InvalidTransaction::BadProof,
+					))?;
 				let post_info = match res {
 					Ok(info) => info,
 					Err(err) => err.post_info,

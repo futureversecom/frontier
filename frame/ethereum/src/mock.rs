@@ -224,6 +224,8 @@ impl fp_self_contained::SelfContainedCall for RuntimeCall {
 	fn apply_self_contained(
 		self,
 		info: Self::SignedInfo,
+		_dispatch_info: &DispatchInfoOf<RuntimeCall>,
+		_len: usize,
 	) -> Option<sp_runtime::DispatchResultWithInfo<sp_runtime::traits::PostDispatchInfoOf<Self>>> {
 		match self {
 			call @ RuntimeCall::Ethereum(crate::Call::transact { .. }) => {
