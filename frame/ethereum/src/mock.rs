@@ -171,6 +171,7 @@ impl pallet_evm::Config for Test {
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = ();
+	type HandleTxValidation = ();
 }
 
 parameter_types! {
@@ -182,6 +183,7 @@ impl Config for Test {
 	type StateRoot = IntermediateStateRoot<Self>;
 	type PostLogContent = PostBlockAndTxnHashes;
 	type ExtraDataLength = ConstU32<30>;
+	type HandleTxValidation = ();
 }
 
 impl fp_self_contained::SelfContainedCall for RuntimeCall {
@@ -230,6 +232,8 @@ impl fp_self_contained::SelfContainedCall for RuntimeCall {
 	fn apply_self_contained(
 		self,
 		info: Self::SignedInfo,
+		_dispatch_info: &DispatchInfoOf<RuntimeCall>,
+		_len: usize,
 	) -> Option<sp_runtime::DispatchResultWithInfo<sp_runtime::traits::PostDispatchInfoOf<Self>>> {
 		match self {
 			call @ RuntimeCall::Ethereum(crate::Call::transact { .. }) => {

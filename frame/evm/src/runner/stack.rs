@@ -42,9 +42,10 @@ use sp_std::{
 };
 // Frontier
 use fp_evm::{
-	AccessedStorage, CallInfo, CreateInfo, ExecutionInfoV2, IsPrecompileResult, Log, PrecompileSet,
-	Vicinity, WeightInfo, ACCOUNT_BASIC_PROOF_SIZE, ACCOUNT_CODES_METADATA_PROOF_SIZE,
-	ACCOUNT_STORAGE_PROOF_SIZE, IS_EMPTY_CHECK_PROOF_SIZE, WRITE_PROOF_SIZE,
+	AccessedStorage, CallInfo, CreateInfo, ExecutionInfoV2, HandleTxValidation, IsPrecompileResult,
+	Log, PrecompileSet, Vicinity, WeightInfo, ACCOUNT_BASIC_PROOF_SIZE,
+	ACCOUNT_CODES_METADATA_PROOF_SIZE, ACCOUNT_STORAGE_PROOF_SIZE, IS_EMPTY_CHECK_PROOF_SIZE,
+	WRITE_PROOF_SIZE,
 };
 
 use crate::{
@@ -377,7 +378,7 @@ where
 		let (source_account, inner_weight) = Pallet::<T>::account_basic(&source);
 		weight = weight.saturating_add(inner_weight);
 
-		let _ = fp_evm::CheckEvmTransaction::<Self::Error>::new(
+		let evm_config = fp_evm::CheckEvmTransaction::<Self::Error>::new(
 			fp_evm::CheckEvmTransactionConfig {
 				evm_config,
 				block_gas_limit: T::BlockGasLimit::get(),
@@ -399,11 +400,12 @@ where
 			},
 			weight_limit,
 			proof_size_base_cost,
-		)
-		.validate_in_block_for(&source_account)
-		.and_then(|v| v.with_base_fee())
-		.and_then(|v| v.with_balance_for(&source_account))
-		.map_err(|error| RunnerError { error, weight })?;
+		);
+
+		T::HandleTxValidation::validate_in_block_for(&evm_config, &source_account)
+			.and_then(|_| T::HandleTxValidation::with_base_fee(&evm_config))
+			.and_then(|_| T::HandleTxValidation::with_balance_for(&evm_config, &source_account))
+			.map_err(|error| RunnerError { error, weight })?;
 		Ok(())
 	}
 

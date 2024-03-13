@@ -110,6 +110,7 @@ pub use self::{
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
+	use fp_evm::HandleTxValidation;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 
@@ -177,6 +178,8 @@ pub mod pallet {
 		fn config() -> &'static EvmConfig {
 			&SHANGHAI_CONFIG
 		}
+
+		type HandleTxValidation: HandleTxValidation<Error<Self>>;
 	}
 
 	#[pallet::call]

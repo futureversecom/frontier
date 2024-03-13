@@ -153,6 +153,7 @@ impl crate::Config for Test {
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = ();
+	type HandleTxValidation = ();
 }
 
 /// Example PrecompileSet with only Identity precompile.
