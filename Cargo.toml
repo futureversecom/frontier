@@ -65,75 +65,75 @@ sqlx = { version = "0.7.1", default-features = false, features = ["macros"] }
 thiserror = "1.0"
 tokio = "1.29.1"
 # Substrate Client
-sc-basic-authorship = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sc-block-builder = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sc-chain-spec = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sc-cli = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-sc-client-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sc-client-db = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-sc-consensus = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sc-consensus-aura = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sc-consensus-grandpa = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sc-consensus-manual-seal = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sc-executor = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sc-keystore = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sc-network = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sc-network-common = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sc-network-sync = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sc-offchain = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sc-rpc = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sc-rpc-api = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sc-service = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-sc-telemetry = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sc-transaction-pool = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sc-transaction-pool-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sc-utils = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
+sc-basic-authorship = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sc-block-builder = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sc-chain-spec = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sc-cli = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+sc-client-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sc-client-db = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+sc-consensus = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sc-consensus-aura = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sc-consensus-grandpa = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sc-consensus-manual-seal = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sc-executor = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sc-keystore = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sc-network = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sc-network-common = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sc-network-sync = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sc-offchain = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sc-rpc = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sc-rpc-api = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sc-service = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+sc-telemetry = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sc-transaction-pool = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sc-transaction-pool-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sc-utils = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
 # Substrate Primitive
-sp-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-sp-block-builder = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-sp-blockchain = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sp-consensus = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sp-consensus-aura = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-sp-consensus-grandpa = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-sp-core = { version = "21.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-sp-database = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sp-inherents = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-sp-io = { version = "23.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-sp-keyring = { version = "24.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-sp-offchain = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-sp-runtime = { version = "24.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-sp-runtime-interface = { version = "17.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-sp-session = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-sp-state-machine = { version = "0.28.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-sp-std = { version = "8.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-sp-storage = { version = "13.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-sp-timestamp = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-sp-transaction-pool = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-sp-trie = { version = "22.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-sp-version = { version = "22.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
+sp-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+sp-block-builder = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+sp-blockchain = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sp-consensus = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sp-consensus-aura = { version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+sp-consensus-grandpa = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+sp-core = { version = "21.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+sp-database = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sp-inherents = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+sp-io = { version = "23.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+sp-keyring = { version = "24.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+sp-offchain = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+sp-runtime = { version = "24.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+sp-runtime-interface = { version = "17.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+sp-session = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+sp-state-machine = { version = "0.28.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+sp-std = { version = "8.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+sp-storage = { version = "13.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+sp-timestamp = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+sp-transaction-pool = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+sp-trie = { version = "22.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+sp-version = { version = "22.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
 # Substrate FRAME
-frame-benchmarking = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-frame-executive = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-frame-support = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-frame-system = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-frame-system-benchmarking = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-frame-system-rpc-runtime-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-pallet-aura = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-pallet-balances = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-pallet-grandpa = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-pallet-sudo = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-pallet-timestamp = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-pallet-transaction-payment = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-pallet-transaction-payment-rpc = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-pallet-transaction-payment-rpc-runtime-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
-pallet-utility = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native", default-features = false }
+frame-benchmarking = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+frame-executive = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+frame-support = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+frame-system = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+frame-system-benchmarking = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+frame-system-rpc-runtime-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+pallet-aura = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+pallet-balances = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+pallet-grandpa = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+pallet-sudo = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+pallet-timestamp = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+pallet-transaction-payment = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+pallet-transaction-payment-rpc = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+pallet-transaction-payment-rpc-runtime-api = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
+pallet-utility = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN", default-features = false }
 # Substrate Utility
-frame-benchmarking-cli = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-prometheus-endpoint = { package = "substrate-prometheus-endpoint", version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-substrate-build-script-utils = { version = "3.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-substrate-frame-rpc-system = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-substrate-test-runtime-client = { version = "2.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
-substrate-wasm-builder = { version = "5.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN-Native" }
+frame-benchmarking-cli = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+prometheus-endpoint = { package = "substrate-prometheus-endpoint", version = "0.10.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+substrate-build-script-utils = { version = "3.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+substrate-frame-rpc-system = { version = "4.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+substrate-test-runtime-client = { version = "2.0.0", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
+substrate-wasm-builder = { version = "5.0.0-dev", git = "https://github.com/futureversecom/trn-substrate", branch = "polkadot-v1.0.0-TRN" }
 # Frontier Client
 fc-cli = { version = "1.0.0-dev", path = "client/cli", default-features = false }
 fc-consensus = { version = "2.0.0-dev", path = "client/consensus" }
